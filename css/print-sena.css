@@ -4,6 +4,15 @@
    Subtítulos en Negrita, Logo Centrado y Tablas Oficiales con Cabecera Negra.
    ==================================================================== */
 
+/* Forzar que los navegadores mantengan los colores y fondos exactos tanto en pantalla como al imprimir */
+*,
+*::before,
+*::after {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+
 .sena-document {
   font-family: Arial, Helvetica, sans-serif;
   color: #000000;
@@ -12,6 +21,8 @@
   font-size: 12pt;
   line-height: 1.5;
   box-sizing: border-box;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
 }
 
 /* ENCABEZADO OFICIAL GUÍA SENA */
@@ -47,6 +58,8 @@
   margin-top: 2rem;
   margin-bottom: 0.75rem;
   line-height: 1.4;
+  page-break-after: avoid;
+  break-after: avoid;
 }
 
 /* SUBTÍTULOS: ARIAL 12 NEGRITA */
@@ -58,6 +71,8 @@
   margin-top: 1.25rem;
   margin-bottom: 0.5rem;
   line-height: 1.4;
+  page-break-after: avoid;
+  break-after: avoid;
 }
 
 /* TEXTOS Y PÁRRAFOS: ARIAL 12 */
@@ -95,166 +110,157 @@
   margin: 1.25rem 0 1.5rem 0;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 12pt;
+  page-break-inside: auto;
+}
+
+.sena-official-table thead {
+  display: table-header-group;
+}
+
+.sena-official-table tr {
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 
 .sena-official-table th {
-  background-color: #000000;
-  color: #ffffff;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 12pt;
-  font-weight: bold;
-  padding: 8px 10px;
-  border: 1px solid #000000;
-  text-align: left;
-  vertical-align: middle;
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 12pt !important;
+  font-weight: bold !important;
+  padding: 8px 10px !important;
+  border: 1px solid #000000 !important;
+  text-align: left !important;
+  vertical-align: middle !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
 }
 
 .sena-official-table td {
-  padding: 8px 10px;
-  border: 1px solid #000000;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 12pt;
-  color: #000000;
-  vertical-align: top;
-  line-height: 1.45;
+  padding: 8px 10px !important;
+  border: 1px solid #000000 !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 12pt !important;
+  color: #000000 !important;
+  vertical-align: top !important;
+  line-height: 1.45 !important;
+  background-color: #ffffff;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
 }
 
-.sena-doc-code-footer {
+.sena-official-table tr.bg-light td {
+  background-color: #f1f5f9 !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* PIE DE PÁGINA OFICIAL REPETIDO EN TODAS LAS HOJAS */
+.sena-running-footer {
   text-align: center;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 11pt;
+  font-size: 10.5pt;
   color: #000000;
   margin-top: 3rem;
   padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
 }
 
-/* ESTILOS DE COMPATIBILIDAD CON OTRAS VISTAS */
-.sena-header-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 2rem;
-  border: 1.5px solid #00324D;
+/* SALTOS DE PÁGINA LIMPIOS */
+.sena-page-break {
+  page-break-before: always;
+  break-before: page;
 }
 
-.sena-header-table td {
-  border: 1px solid #00324D;
-  padding: 8px 12px;
-  vertical-align: middle;
-}
-
-.sena-logo-box {
-  width: 120px;
-  text-align: center;
-  font-weight: 800;
-  color: #39A900;
-  font-size: 16pt;
-  background-color: #f8fafc;
-}
-
-.sena-doc-title {
-  text-align: center;
-  font-size: 13pt;
-  font-weight: bold;
-  color: #00324D;
-  text-transform: uppercase;
-}
-
-.sena-version-box {
-  width: 130px;
-  font-size: 8pt;
-  color: #4b5563;
-}
-
-.sena-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1.25rem 0;
-  font-size: 10pt;
-}
-
-.sena-table th {
-  background-color: #00324D;
-  color: #ffffff;
-  font-weight: bold;
-  text-align: left;
-  padding: 8px 10px;
-  border: 1px solid #00324D;
-}
-
-.sena-table td {
-  padding: 7px 10px;
-  border: 1px solid #cbd5e1;
-  vertical-align: top;
-}
-
-.sena-section-title {
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 12pt;
-  font-weight: bold;
-  text-transform: uppercase;
-  color: #000000;
-  border-bottom: 2px solid #39A900;
-  padding-bottom: 4px;
-  margin-top: 1.75rem;
-  margin-bottom: 0.85rem;
-}
-
-.sena-badge {
-  display: inline-block;
-  background-color: #e2e8f0;
-  color: #00324D;
-  font-size: 9pt;
-  font-weight: bold;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-/* IMPRESIÓN Y EXPORTACIÓN A PDF */
+/* ====================================================================
+   REGLAS EXCLUSIVAS PARA IMPRESIÓN Y EXPORTACIÓN A PDF
+   ==================================================================== */
 @media print {
-  body {
+  /* Suprimir encabezados y pies de página predeterminados del navegador (URL, fecha, título) */
+  @page {
+    size: letter;
+    margin: 0mm !important;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
     background: #ffffff !important;
     color: #000000 !important;
     font-family: Arial, Helvetica, sans-serif !important;
+    width: 100% !important;
   }
-  
+
+  /* Ocultar elementos de la interfaz de la aplicación */
   header.app-header,
   .view-nav,
   .generator-sidebar,
   .hero-banner,
+  .modal-overlay,
+  .app-toast,
   .no-print {
     display: none !important;
   }
 
   main.container {
     max-width: 100% !important;
+    width: 100% !important;
     padding: 0 !important;
     margin: 0 !important;
   }
 
   .doc-preview-wrapper {
     box-shadow: none !important;
+    border: none !important;
     padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    background: #ffffff !important;
     min-height: auto !important;
   }
 
+  /* El documento SENA asume los márgenes institucionales (2.2cm) */
   .sena-document {
+    padding: 2cm 2cm 2.2cm 2cm !important;
+    margin: 0 !important;
+    width: 100% !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 12pt !important;
+  }
+
+  /* Cabeceras de tabla negras forzadas al imprimir */
+  .sena-official-table th {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border: 1px solid #000000 !important;
+  }
+
+  .sena-official-table td {
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+  }
+
+  /* El pie institucional se fija en la parte inferior de CADA PÁGINA IMPRESA */
+  .sena-running-footer {
+    display: block !important;
+    position: fixed !important;
+    bottom: 0.8cm !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
     padding: 0 !important;
+    border-top: none !important;
+    text-align: center !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 10pt !important;
+    color: #000000 !important;
+    background: transparent !important;
   }
 
-  .sena-official-table tr, .sena-table tr {
-    page-break-inside: avoid;
-  }
-
-  .sena-main-title, .sena-section-title {
-    page-break-after: avoid;
-  }
-
-  @page {
-    size: letter;
-    margin: 2cm 1.5cm;
-  }
-
-  .page-break {
-    page-break-before: always;
+  .sena-page-break {
+    page-break-before: always !important;
+    break-before: page !important;
   }
 }

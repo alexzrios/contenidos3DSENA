@@ -140,6 +140,9 @@ export class DocumentBuilder {
             <button class="btn-action primary" onclick="window.print()" style="justify-content: center; padding: 0.75rem;">
               🖨️ Imprimir / Guardar en PDF
             </button>
+            <div style="font-size: 0.73rem; color: #94a3b8; line-height: 1.35; margin-top: -0.25rem; background: rgba(255,255,255,0.03); padding: 6px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.08);">
+              💡 <strong>Al imprimir:</strong> Active <em>"Gráficos de fondo"</em> y desactive <em>"Encabezados y pies de página"</em> del navegador.
+            </div>
             <button class="btn-action" id="btnExportExcel" onclick="window.app.exportInstrumentoExcel()" style="justify-content: center; padding: 0.65rem; border-color: rgba(16, 185, 129, 0.5); color: #34d399; background: rgba(16, 185, 129, 0.08); ${this.currentDocType === 'instrumento' ? 'display: flex;' : 'display: none;'}">
               📊 Descargar Excel Multi-Hoja (.xls)
             </button>
@@ -379,8 +382,10 @@ export class DocumentBuilder {
     const trimInfo = curriculo.trimestres.find(t => t.raps.some(r => r.rap_id === rapKey)) || curriculo.trimestres[0];
     const faseProyectoTag = trimInfo.fase_proyecto || `FASE ${trimInfo.numero}`;
 
+    const thStyle = 'background-color: #000000 !important; color: #ffffff !important; font-family: Arial, Helvetica, sans-serif !important; font-size: 12pt !important; font-weight: bold !important; padding: 8px 10px !important; border: 1px solid #000000 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;';
+
     return `
-      <div class="sena-document" style="font-family: Arial, Helvetica, sans-serif; font-size: 12pt; line-height: 1.5; color: #000000;">
+      <div class="sena-document" style="font-family: Arial, Helvetica, sans-serif; font-size: 12pt; line-height: 1.5; color: #000000; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
         
         <!-- ENCABEZADO OFICIAL SENA: LOGO CENTRADO Y TÍTULOS EN MAYÚSCULA NEGRITA ARIAL 12 -->
         <div class="sena-guia-header">
@@ -439,7 +444,9 @@ export class DocumentBuilder {
         </p>
 
         <!-- 3. FORMULACIÓN DE LAS ACTIVIDADES DE APRENDIZAJE -->
-        <div class="sena-main-title">
+        <div class="sena-page-break"></div>
+
+        <div class="sena-main-title" style="margin-top: 1rem;">
           3.&nbsp;&nbsp;&nbsp;&nbsp;FORMULACIÓN DE LAS ACTIVIDADES DE APRENDIZAJE
         </div>
 
@@ -451,25 +458,28 @@ export class DocumentBuilder {
           En el siguiente cuadro se observa para la competencia y las evidencias a entregar:
         </p>
 
-        <!-- Cuadro resumen oficial de evidencias -->
+        <!-- Cuadro resumen oficial de evidencias con cabecera negra forzada -->
         <table class="sena-official-table">
           <thead>
             <tr>
-              <th style="width: 25%;">Competencia</th>
-              <th style="width: 25%;">Evidencia 1 (Técnica 3D)</th>
-              ${activeTransversales.map((t, idx) => `<th style="width: 25%;">Evidencia ${2 + idx} (${t.rap_id.replace('-', ' ')})</th>`).join('')}
+              <th style="${thStyle} width: 25%;">Competencia</th>
+              <th style="${thStyle} width: 25%;">Evidencia 1 (Técnica 3D)</th>
+              ${activeTransversales.map((t, idx) => `<th style="${thStyle} width: 25%;">Evidencia ${2 + idx} (${t.rap_id.replace('-', ' ')})</th>`).join('')}
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><strong>${rap.norma_codigo}</strong><br><span style="font-size: 11pt;">${rap.norma_nombre}</span></td>
-              <td>${rap.evidencia}</td>
-              ${activeTransversales.map(t => `<td>${t.evidencia}</td>`).join('')}
+              <td style="border: 1px solid #000000; padding: 8px 10px;">
+                <strong>${rap.norma_codigo}</strong><br>
+                <span>${rap.norma_nombre}</span>
+              </td>
+              <td style="border: 1px solid #000000; padding: 8px 10px;">${rap.evidencia}</td>
+              ${activeTransversales.map(t => `<td style="border: 1px solid #000000; padding: 8px 10px;">${t.evidencia}</td>`).join('')}
             </tr>
-            <tr style="background: #f8fafc;">
-              <td style="font-weight: bold;">Horas por evidencia</td>
-              <td style="font-weight: bold; text-align: center;">${horasTecnicas} h</td>
-              ${activeTransversales.map(t => `<td style="font-weight: bold; text-align: center;">${t.horas} h</td>`).join('')}
+            <tr class="bg-light" style="background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+              <td style="font-weight: bold; border: 1px solid #000000; padding: 8px 10px; background-color: #f1f5f9 !important;">Horas por evidencia</td>
+              <td style="font-weight: bold; text-align: center; border: 1px solid #000000; padding: 8px 10px; background-color: #f1f5f9 !important;">${horasTecnicas} h</td>
+              ${activeTransversales.map(t => `<td style="font-weight: bold; text-align: center; border: 1px solid #000000; padding: 8px 10px; background-color: #f1f5f9 !important;">${t.horas} h</td>`).join('')}
             </tr>
           </tbody>
         </table>
@@ -571,41 +581,43 @@ export class DocumentBuilder {
         }).join('')}
 
         <!-- 4. ACTIVIDADES DE EVALUACIÓN -->
-        <div class="sena-main-title" style="margin-top: 2rem;">
+        <div class="sena-page-break"></div>
+
+        <div class="sena-main-title" style="margin-top: 1rem;">
           4.&nbsp;&nbsp;&nbsp;&nbsp;ACTIVIDADES DE EVALUACIÓN
         </div>
 
         <table class="sena-official-table">
           <thead>
             <tr>
-              <th style="width: 32%;">Evidencias de aprendizaje</th>
-              <th style="width: 40%;">Criterios de evaluación</th>
-              <th style="width: 28%;">Técnicas e instrumentos de evaluación</th>
+              <th style="${thStyle} width: 32%;">Evidencias de aprendizaje</th>
+              <th style="${thStyle} width: 40%;">Criterios de evaluación</th>
+              <th style="${thStyle} width: 28%;">Técnicas e instrumentos de evaluación</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>
+              <td style="border: 1px solid #000000; padding: 8px 10px;">
                 <strong>Evidencia de producto:</strong><br>
                 ${rap.evidencia}
               </td>
-              <td>
+              <td style="border: 1px solid #000000; padding: 8px 10px;">
                 <ul style="margin: 0; padding-left: 1.25rem; line-height: 1.45;">
                   ${rap.criterios_evaluacion.map(c => `<li style="margin-bottom: 0.35rem;">${c}</li>`).join('')}
                 </ul>
               </td>
-              <td>
+              <td style="border: 1px solid #000000; padding: 8px 10px;">
                 <strong>Técnica:</strong> Valoración de producto digital.<br><br>
                 <strong>Instrumento:</strong> Lista de verificación / Lista de chequeo (GFPI-F-023).
               </td>
             </tr>
             ${activeTransversales.map(t => `
               <tr>
-                <td>
+                <td style="border: 1px solid #000000; padding: 8px 10px;">
                   <strong>Evidencia de desempeño y producto (${t.rap_id.replace('-', ' ')}):</strong><br>
                   ${t.evidencia}
                 </td>
-                <td>
+                <td style="border: 1px solid #000000; padding: 8px 10px;">
                   <ul style="margin: 0; padding-left: 1.25rem; line-height: 1.45;">
                     ${(t.criterios && t.criterios.length > 0) ? t.criterios.map(c => `<li style="margin-bottom: 0.35rem;">${c}</li>`).join('') : `
                       <li style="margin-bottom: 0.35rem;">Aplica los conocimientos y terminología del componente transversal articulados directamente al proyecto 3D.</li>
@@ -613,7 +625,7 @@ export class DocumentBuilder {
                     `}
                   </ul>
                 </td>
-                <td>
+                <td style="border: 1px solid #000000; padding: 8px 10px;">
                   <strong>Técnica:</strong> Valoración de evidencia integrada.<br><br>
                   <strong>Instrumento:</strong> Lista de verificación / Rúbrica de evaluación SENA.
                 </td>
@@ -666,26 +678,26 @@ export class DocumentBuilder {
         <table class="sena-official-table">
           <thead>
             <tr>
-              <th style="width: 15%;"></th>
-              <th style="width: 30%;">Nombre</th>
-              <th style="width: 25%;">Cargo</th>
-              <th style="width: 20%;">Dependencia</th>
-              <th style="width: 10%;">Fecha</th>
+              <th style="${thStyle} width: 15%;"></th>
+              <th style="${thStyle} width: 30%;">Nombre</th>
+              <th style="${thStyle} width: 25%;">Cargo</th>
+              <th style="${thStyle} width: 20%;">Dependencia</th>
+              <th style="${thStyle} width: 10%;">Fecha</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style="font-weight: bold;">Autor (es)</td>
-              <td>${instructor}</td>
-              <td>Instructor Experto Técnico 3D / Diseñador Curricular</td>
-              <td>${centro}</td>
-              <td>Noviembre de 2026</td>
+              <td style="font-weight: bold; border: 1px solid #000000; padding: 8px 10px;">Autor (es)</td>
+              <td style="border: 1px solid #000000; padding: 8px 10px;">${instructor}</td>
+              <td style="border: 1px solid #000000; padding: 8px 10px;">Instructor Experto Técnico 3D / Diseñador Curricular</td>
+              <td style="border: 1px solid #000000; padding: 8px 10px;">${centro}</td>
+              <td style="border: 1px solid #000000; padding: 8px 10px;">Noviembre de 2026</td>
             </tr>
           </tbody>
         </table>
 
-        <!-- CÓDIGO DE VERSIÓN AL PIE -->
-        <div class="sena-doc-code-footer">
+        <!-- PIE INSTITUCIONAL REPETIDO EN CADA HOJA AL IMPRIMIR -->
+        <div class="sena-running-footer">
           GFPI-F-135 V02
         </div>
 
