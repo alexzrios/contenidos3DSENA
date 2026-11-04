@@ -164,7 +164,49 @@ class App {
     document.body.removeChild(link);
   }
 
+  onCentroChange(val) {
+    this.documentBuilder.saveCentro(val);
+    this.documentBuilder.updatePreview();
+    this.showFieldSavedIndicator('centroSavedBadge');
+  }
+
+  onInstructorChange(val) {
+    this.documentBuilder.saveInstructor(val);
+    this.documentBuilder.updatePreview();
+    this.showFieldSavedIndicator('instructorSavedBadge');
+  }
+
+  showFieldSavedIndicator(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.opacity = '1';
+    clearTimeout(this['_' + id + 'Timer']);
+    this['_' + id + 'Timer'] = setTimeout(() => {
+      el.style.opacity = '0';
+    }, 1800);
+  }
+
+  resetCentroInstructorDefaults() {
+    const DEFAULT_CENTRO = 'Centro Tecnológico del Mobiliario - Centro de Servicios y Gestión Empresarial';
+    const DEFAULT_INSTRUCTOR = 'Equipo de Desarrollo Curricular 3D & Nuevas Tecnologías';
+
+    this.documentBuilder.saveCentro(DEFAULT_CENTRO);
+    this.documentBuilder.saveInstructor(DEFAULT_INSTRUCTOR);
+
+    const cInput = document.getElementById('centroInput');
+    const iInput = document.getElementById('instructorInput');
+    if (cInput) cInput.value = DEFAULT_CENTRO;
+    if (iInput) iInput.value = DEFAULT_INSTRUCTOR;
+
+    this.documentBuilder.updatePreview();
+    this.showToast('↺ Datos institucionales restaurados por defecto');
+  }
+
   updateDocPreview() {
+    const cInput = document.getElementById('centroInput');
+    const iInput = document.getElementById('instructorInput');
+    if (cInput) this.documentBuilder.saveCentro(cInput.value);
+    if (iInput) this.documentBuilder.saveInstructor(iInput.value);
     this.documentBuilder.updatePreview();
   }
 
@@ -1382,8 +1424,8 @@ toggleRapActive(rapKey) {
   }
 
   exportInstrumentoExcel() {
-    const centro = document.getElementById('centroInput')?.value || 'Centro Tecnológico del Mobiliario - Centro de Servicios y Gestión Empresarial';
-    const instructor = document.getElementById('instructorInput')?.value || 'Equipo de Desarrollo Curricular 3D & Nuevas Tecnologías';
+    const centro = document.getElementById('centroInput')?.value || this.documentBuilder.getSavedCentro();
+    const instructor = document.getElementById('instructorInput')?.value || this.documentBuilder.getSavedInstructor();
     const xml = this.documentBuilder.generateMultiSheetExcelXML(this.documentBuilder.currentRap, centro, instructor);
     
     const blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8' });

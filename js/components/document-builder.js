@@ -14,11 +14,46 @@ export class DocumentBuilder {
     this.selectedTransversalRap = null;
     this.selectedAprendizDoc = null;
     this.currentProgram = 'tecnologo';
+    this.centro = this.getSavedCentro();
+    this.instructor = this.getSavedInstructor();
+  }
+
+  escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  getSavedCentro() {
+    return localStorage.getItem('sena_centro_formacion') || 'Centro Tecnológico del Mobiliario - Centro de Servicios y Gestión Empresarial';
+  }
+
+  saveCentro(val) {
+    const clean = val !== undefined && val !== null ? String(val).trim() : '';
+    this.centro = clean || 'Centro Tecnológico del Mobiliario - Centro de Servicios y Gestión Empresarial';
+    localStorage.setItem('sena_centro_formacion', this.centro);
+  }
+
+  getSavedInstructor() {
+    return localStorage.getItem('sena_instructor_disenador') || 'Equipo de Desarrollo Curricular 3D & Nuevas Tecnologías';
+  }
+
+  saveInstructor(val) {
+    const clean = val !== undefined && val !== null ? String(val).trim() : '';
+    this.instructor = clean || 'Equipo de Desarrollo Curricular 3D & Nuevas Tecnologías';
+    localStorage.setItem('sena_instructor_disenador', this.instructor);
   }
 
   render(programType = 'tecnologo') {
     this.currentProgram = programType;
     if (!this.container) return;
+
+    const savedCentro = this.getSavedCentro();
+    const savedInstructor = this.getSavedInstructor();
 
     this.container.innerHTML = `
       <div class="generator-layout">
@@ -67,13 +102,32 @@ export class DocumentBuilder {
           </div>
 
           <div class="form-group">
-            <label class="form-label">Centro de Formación / Regional:</label>
-            <input type="text" class="form-input" id="centroInput" value="Centro Tecnológico del Mobiliario - Centro de Servicios y Gestión Empresarial" oninput="window.app.updateDocPreview()">
+            <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>🏢 Centro de Formación / Regional:</span>
+              <span id="centroSavedBadge" style="font-size: 0.72rem; color: #10b981; font-weight: 700; opacity: 0; transition: opacity 0.3s ease;">✓ Guardado</span>
+            </label>
+            <input type="text" class="form-input" id="centroInput" 
+              value="${this.escapeHtml(savedCentro)}" 
+              placeholder="Centro Tecnológico del Mobiliario - Centro de Servicios y Gestión Empresarial" 
+              oninput="window.app.onCentroChange(this.value)">
           </div>
 
           <div class="form-group">
-            <label class="form-label">Nombre del Instructor / Diseñador:</label>
-            <input type="text" class="form-input" id="instructorInput" value="Equipo de Desarrollo Curricular 3D & Nuevas Tecnologías" oninput="window.app.updateDocPreview()">
+            <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>👤 Nombre del Instructor / Diseñador:</span>
+              <span id="instructorSavedBadge" style="font-size: 0.72rem; color: #10b981; font-weight: 700; opacity: 0; transition: opacity 0.3s ease;">✓ Guardado</span>
+            </label>
+            <input type="text" class="form-input" id="instructorInput" 
+              value="${this.escapeHtml(savedInstructor)}" 
+              placeholder="Equipo de Desarrollo Curricular 3D & Nuevas Tecnologías" 
+              oninput="window.app.onInstructorChange(this.value)">
+          </div>
+
+          <div style="margin-top: -0.25rem; margin-bottom: 0.75rem; text-align: right;">
+            <button type="button" onclick="window.app.resetCentroInstructorDefaults()" 
+              style="font-size: 0.72rem; color: #94a3b8; background: transparent; border: none; cursor: pointer; text-decoration: underline; padding: 0;">
+              ↺ Restaurar datos institucionales por defecto
+            </button>
           </div>
 
           <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 0.75rem;">
@@ -255,8 +309,14 @@ export class DocumentBuilder {
     const previewContainer = document.getElementById('documentPreview');
     if (!previewContainer) return;
 
-    const centro = document.getElementById('centroInput')?.value || 'Centro Tecnológico del Mobiliario - Centro de Servicios y Gestión Empresarial';
-    const instructor = document.getElementById('instructorInput')?.value || 'Equipo Técnico Curricular';
+    const centroEl = document.getElementById('centroInput');
+    const instructorEl = document.getElementById('instructorInput');
+
+    const centro = centroEl ? centroEl.value : this.getSavedCentro();
+    const instructor = instructorEl ? instructorEl.value : this.getSavedInstructor();
+
+    this.centro = centro;
+    this.instructor = instructor;
 
     if (this.currentDocType === 'guia') {
       previewContainer.innerHTML = this.generateGuiaHTML(this.currentRap, centro, instructor);
@@ -361,6 +421,14 @@ export class DocumentBuilder {
           <tr>
             <td style="font-weight: bold;">Actividad de Proyecto (AP):</td>
             <td>Desarrollar y optimizar los activos 3D, cinemáticos o interactivos según especificaciones de producción y estándares técnicos.</td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold; background: #f8fafc;">Centro de Formación / Regional:</td>
+            <td style="background: #f8fafc;"><strong>${centro}</strong></td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold; background: #f8fafc;">Nombre del Instructor / Diseñador:</td>
+            <td style="background: #f8fafc;"><strong>${instructor}</strong></td>
           </tr>
           <tr>
             <td style="font-weight: bold; background: #f8fafc;">Competencia Técnica Específica (3D):</td>
@@ -1081,7 +1149,7 @@ export class DocumentBuilder {
       </Row>
       <Row ss:Height="20">
         <Cell ss:StyleID="MetaLabel"><Data ss:Type="String">Centro / Regional:</Data></Cell>
-        <Cell ss:MergeAcross="2" ss:StyleID="MetaVal"><Data ss:Type="String">${escapeXml(centro)} — ANTIOQUIA</Data></Cell>
+        <Cell ss:MergeAcross="2" ss:StyleID="MetaVal"><Data ss:Type="String">${escapeXml(centro)}</Data></Cell>
         <Cell ss:StyleID="MetaLabel"><Data ss:Type="String">Instructor:</Data></Cell>
         <Cell ss:StyleID="MetaVal"><Data ss:Type="String">${escapeXml(instructor)}</Data></Cell>
       </Row>
@@ -1216,7 +1284,7 @@ export class DocumentBuilder {
           </tr>
           <tr>
             <td colspan="2" style="font-size: 8.5pt; background: #f8fafc;">
-              <strong>Programa:</strong> ${curriculo.info.denominacion} | <strong>Centro:</strong> ${centro}
+              <strong>Programa:</strong> ${curriculo.info.denominacion} | <strong>Centro:</strong> ${centro} | <strong>Instructor:</strong> ${instructor}
             </td>
           </tr>
         </table>
@@ -1352,7 +1420,11 @@ export class DocumentBuilder {
             <td style="width: 15%;">ANTIOQUIA - ITAGÜÍ</td>
           </tr>
           <tr>
-            <td style="font-weight: bold;">1.3 Nombre del Proyecto:</td>
+            <td style="font-weight: bold;">1.3 Formador / Diseñador Curricular:</td>
+            <td colspan="3"><strong>${instructor}</strong></td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;">1.4 Nombre del Proyecto:</td>
             <td colspan="3"><strong>Creación de un portafolio de contenidos 3d audiovisuales e interactivos para la visualización de productos y servicios del sector productivo.</strong></td>
           </tr>
           <tr>
