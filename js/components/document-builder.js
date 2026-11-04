@@ -18,6 +18,12 @@ export class DocumentBuilder {
     this.instructor = this.getSavedInstructor();
   }
 
+  getSenaLogoSVG() {
+    return `<svg width="76" height="74" viewBox="0 0 75 73.5" xmlns="http://www.w3.org/2000/svg" style="display: inline-block; vertical-align: middle;">
+      <path fill="#39A900" d="M 37.729312,0.76709211 A 7.9671225,7.9671225 0 0 0 29.773371,8.741545 7.9671225,7.9671225 0 0 0 37.744605,16.701107 7.9671225,7.9671225 0 0 0 45.707788,8.733898 V 8.718608 A 7.9671225,7.9671225 0 0 0 37.729312,0.76709211 Z M 11.446982,19.169553 c -1.400062,0.0084 -2.8234862,0.08599 -4.1584857,0.42261 -0.8795905,0.222694 -1.7315449,0.589234 -2.2841086,1.159562 -0.6939573,0.71469 -0.7830516,1.683375 -0.4447463,2.510708 0.3027378,0.728932 1.116412,1.275934 2.0228936,1.588612 1.9500175,0.668079 4.117455,0.809612 6.168096,1.230399 0.378207,0.09257 0.796556,0.194498 1.030766,0.452796 0.242885,0.306852 0.09871,0.729986 -0.299446,0.922901 -0.666204,0.338572 -1.517067,0.341289 -2.29256,0.329636 -0.708709,-0.02913 -1.4860247,-0.08878 -2.0498634,-0.44354 -0.4146382,-0.255061 -0.487253,-0.689278 -0.3944343,-1.062161 l -4.5714374,4.13e-4 c -0.012144,0.695917 0.1230528,1.422157 0.6331108,2.019674 0.4259168,0.510124 1.1138561,0.869443 1.8546552,1.08631 1.1823274,0.347635 2.4633397,0.45247 3.7246061,0.484191 1.711468,0.02913 3.456086,-0.02172 5.099895,-0.410133 0.979349,-0.238231 1.942311,-0.624278 2.569473,-1.250927 1.113798,-1.117998 0.851643,-2.888599 -0.629086,-3.758011 -0.737329,-0.429203 -1.620362,-0.695805 -2.52077,-0.867357 -1.316781,-0.273188 -2.657724,-0.472977 -3.991855,-0.693081 -0.468421,-0.09127 -0.9637641,-0.17183 -1.3575867,-0.393229 -0.4120347,-0.221399 -0.4451988,-0.742521 -0.025355,-0.970393 0.5430207,-0.306203 1.2665147,-0.304035 1.9162377,-0.304681 0.68528,0.01165 1.430476,0.05483 1.994315,0.375921 0.31575,0.17673 0.442485,0.473443 0.445955,0.758283 l 4.344837,-0.01004 c -0.01734,-0.550925 -0.118731,-1.123123 -0.521227,-1.598289 -0.466686,-0.585218 -1.287477,-0.954052 -2.13237,-1.169625 -1.325457,-0.335334 -2.741002,-0.404061 -4.131515,-0.410535 z m 9.425817,0.328831 -0.0019,10.38132 12.670256,4.12e-4 -0.0011,-2.263178 H 25.518157 V 25.60169 h 7.154592 v -2.212465 h -7.154592 l -0.0016,-1.652607 7.734167,-0.002 -0.0044,-2.236213 z m 20.874932,0.0036 c 0,0 -3.91491,0.0012 -5.871868,0.0012 l -8.25e-4,10.382125 4.448274,4.12e-4 -0.0028,-6.986351 6.093235,6.980716 6.104905,0.0056 -0.0016,-10.382527 -4.451897,7.97e-4 0.0052,6.936443 z m 18.702713,0.01731 c 0,0 -4.795135,6.925757 -7.204899,10.383332 l 4.669239,4.12e-4 1.120118,-1.873169 h 7.21456 l 1.045256,1.873974 5.186434,-7.96e-4 -6.872848,-10.382125 z m 2.333214,2.478105 2.214074,3.76083 -4.576669,0.0065 z m -62.26819489,10.81881 0.0402459,5.651707 21.11883799,-0.07527 c 1.07706,0.231841 1.7024,0.932964 1.482355,2.526807 l -12.989427,22.73807 4.231335,3.955631 20.118662,-34.796918 z m 40.29930289,0.0483 19.784196,34.649208 4.372205,-3.930275 -13.14036,-22.678472 c -0.22011,-1.598763 0.405444,-2.307963 1.482759,-2.540491 l 21.123264,0.07527 -0.0056,-5.557928 z m -3.337814,5.733814 -18.552992,31.845491 4.928038,2.401635 12.380065,-20.924035 c 0.426522,-0.348923 0.858497,-0.534847 1.290772,-0.552212 0.455325,-0.01744 0.916655,0.151004 1.377709,0.511558 l 12.351487,20.988033 5.083398,-2.65158 z"/>
+    </svg>`;
+  }
+
   escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -355,252 +361,261 @@ export class DocumentBuilder {
     }).join('');
   }
 
-  // 1. GENERADOR DE GUÍA DE APRENDIZAJE OFICIAL SENA
+  // 1. GENERADOR DE GUÍA DE APRENDIZAJE OFICIAL SENA (GFPI-F-135 V02)
   generateGuiaHTML(rapKey, centro, instructor) {
     const rap = RAPS_TECNICOS[rapKey] || RAPS_TECNICOS['RAP-01'];
     let curriculo = CURRICULO_TECNOLOGO;
     if (this.currentProgram === 'modelado') curriculo = CURRICULO_MODELADO;
     if (this.currentProgram === 'animacion') curriculo = CURRICULO_ANIMACION;
 
-    // Obtener lista completa de RAPs transversales vinculados a esta guía
+    // RAPs transversales vinculados
     const activeTransversales = this.getActiveTransversales(rapKey);
     const horasTecnicas = rap.horas || 144;
     const horasTransversales = activeTransversales.reduce((acc, t) => acc + (t.horas || 48), 0);
     const totalHorasGuia = horasTecnicas + horasTransversales;
     const totalCreditosGuia = Math.max(1, Math.round(totalHorasGuia / 48));
 
-    // Determinar fase PHVA y trimestre formativo
+    // Fase del proyecto
     const trimInfo = curriculo.trimestres.find(t => t.raps.some(r => r.rap_id === rapKey)) || curriculo.trimestres[0];
     const faseProyectoTag = trimInfo.fase_proyecto || `FASE ${trimInfo.numero}`;
 
     return `
-      <div class="sena-document">
-        <!-- Encabezado Institucional SENA -->
-        <table class="sena-header-table">
-          <tr>
-            <td rowspan="2" class="sena-logo-box">
-              <div style="font-size: 20pt; font-weight: 900; color: #39A900; letter-spacing: -1px;">SENA</div>
-              <div style="font-size: 7pt; color: #00324D; font-weight: bold;">SERVICIO NACIONAL DE APRENDIZAJE</div>
-            </td>
-            <td class="sena-doc-title">
-              GUÍA DE APRENDIZAJE — FORMACIÓN PROFESIONAL INTEGRAL<br>
-              <span style="font-size: 9.5pt; font-weight: normal; color: #374151;">PROCESO DE GESTIÓN DE FORMACIÓN PROFESIONAL INTEGRAL</span>
-            </td>
-            <td class="sena-version-box">
-              <strong>Código:</strong> GFPI-F-135<br>
-              <strong>Versión:</strong> 02<br>
-              <strong>Fecha:</strong> 2026
-            </td>
-          </tr>
-          <tr>
-            <td colspan="2" style="font-size: 8.5pt; background: #f8fafc;">
-              <strong>${centro}</strong>
-            </td>
-          </tr>
-        </table>
-
-        <!-- 1. IDENTIFICACIÓN DE LA GUÍA -->
-        <div class="sena-section-title">1. IDENTIFICACIÓN DE LA GUÍA DE APRENDIZAJE</div>
-        <table class="sena-table">
-          <tr>
-            <td style="width: 32%; font-weight: bold;">Denominación del Programa de Formación:</td>
-            <td>${curriculo.info.denominacion}</td>
-          </tr>
-          <tr>
-            <td style="font-weight: bold;">Código del Programa de Formación:</td>
-            <td>${curriculo.info.codigo}</td>
-          </tr>
-          <tr>
-            <td style="font-weight: bold;">Nombre del Proyecto Formativo:</td>
-            <td>Desarrollo de contenidos digitales 3D interactivos, cinemáticos y prototipos de manufactura bajo flujos híbridos asistidos por IA.</td>
-          </tr>
-          <tr>
-            <td style="font-weight: bold;">Fase del Proyecto (Ciclo PHVA):</td>
-            <td><strong>${faseProyectoTag}:</strong> ${trimInfo.fase}</td>
-          </tr>
-          <tr>
-            <td style="font-weight: bold;">Actividad de Proyecto (AP):</td>
-            <td>Desarrollar y optimizar los activos 3D, cinemáticos o interactivos según especificaciones de producción y estándares técnicos.</td>
-          </tr>
-          <tr>
-            <td style="font-weight: bold; background: #f8fafc;">Centro de Formación / Regional:</td>
-            <td style="background: #f8fafc;"><strong>${centro}</strong></td>
-          </tr>
-          <tr>
-            <td style="font-weight: bold; background: #f8fafc;">Nombre del Instructor / Diseñador:</td>
-            <td style="background: #f8fafc;"><strong>${instructor}</strong></td>
-          </tr>
-          <tr>
-            <td style="font-weight: bold; background: #f8fafc;">Competencia Técnica Específica (3D):</td>
-            <td style="background: #f8fafc;"><strong>${rap.norma_codigo}</strong> — ${rap.norma_nombre}</td>
-          </tr>
-          <tr>
-            <td style="font-weight: bold; background: #f8fafc;">Resultado de Aprendizaje Específico (RAP):</td>
-            <td style="background: #f8fafc;">
-              <span class="sena-badge" style="background: #e0f2fe; color: #0284c7; font-weight: 700;">${rap.id}</span>
-              <strong>${rap.resultado_aprendizaje}</strong> (${rap.horas} Horas)
-            </td>
-          </tr>
-          <tr>
-            <td style="font-weight: bold; background: #faf5ff; color: #7e22ce; vertical-align: top;">Competencia(s) Transversal(es) / Clave(s):</td>
-            <td style="background: #faf5ff;">
-              ${activeTransversales.length === 0 ? '<em style="color: #64748b;">Ninguna asociada (Guía de formación 100% técnica).</em>' : `
-                <ul style="margin: 0; padding-left: 1.15rem; line-height: 1.45;">
-                  ${activeTransversales.map(t => `
-                    <li style="margin-bottom: 0.3rem;">
-                      <strong>${t.codigo}</strong> — ${t.competencia}
-                    </li>
-                  `).join('')}
-                </ul>
-              `}
-            </td>
-          </tr>
-          <tr>
-            <td style="font-weight: bold; background: #faf5ff; color: #7e22ce; vertical-align: top;">Resultado(s) de Aprendizaje Transversal(es):</td>
-            <td style="background: #faf5ff;">
-              ${activeTransversales.length === 0 ? '<em style="color: #64748b;">Sin RAPs transversales vinculados.</em>' : `
-                <ul style="margin: 0; padding-left: 1.15rem; line-height: 1.45;">
-                  ${activeTransversales.map(t => `
-                    <li style="margin-bottom: 0.4rem;">
-                      <span class="sena-badge" style="background: #f3e8ff; color: #7e22ce; font-weight: 700; margin-right: 4px;">${t.rap_id.replace('-', ' ')}</span>
-                      <strong>${t.nombre_rap}</strong> (${t.horas} Horas)
-                    </li>
-                  `).join('')}
-                </ul>
-              `}
-            </td>
-          </tr>
-          <tr>
-            <td style="font-weight: bold;">Duración Total de la Guía:</td>
-            <td>
-              <strong style="font-size: 10.5pt; color: #00324D;">${totalHorasGuia} Horas</strong> (${totalCreditosGuia} Créditos SENA)
-              <div style="font-size: 8pt; color: #64748b; margin-top: 3px;">
-                ⏱️ <strong>${horasTecnicas} Horas Técnicas Directas (3D)</strong>
-                ${activeTransversales.length > 0 ? activeTransversales.map(t => ` + 🌐 <strong>${t.horas}h (${t.rap_id.replace('-', ' ')})</strong>`).join('') : ''}
-              </div>
-            </td>
-          </tr>
-        </table>
-
-        <!-- 2. PRESENTACIÓN -->
-        <div class="sena-section-title">2. PRESENTACIÓN</div>
-        <p style="text-align: justify; margin-bottom: 0.85rem;">
-          Estimado Aprendiz: La industria de contenidos digitales, videojuegos, arquitectura y efectos visuales demanda profesionales integrales capaces de dominar flujos de trabajo contemporáneos de alta eficiencia y rigor técnico. En esta guía de aprendizaje correspondiente a la actividad clave <strong>"${rap.actividad_clave}"</strong>, usted abordará los fundamentos de la técnica 3D y su aceleración asistida por Inteligencia Artificial${activeTransversales.length > 0 ? `, articulados armónicamente con las competencias transversales: ${activeTransversales.map(t => `<strong>"${t.competencia}"</strong>`).join(', ')}` : ''}.
-        </p>
-        <p style="text-align: justify;">
-          A lo largo de este itinerario formativo, aprenderá a sintetizar conceptos, optimizar flujos de producción y generar como producto principal: <em>"${rap.producto_egresado}"</em>, complementando la técnica con habilidades comunicativas, bilingües, ergonómicas y laborales indispensables para insertarse con éxito en equipos de producción interdisciplinares globales.
-        </p>
-
-        <!-- 3. FORMULACIÓN DE ACTIVIDADES DE APRENDIZAJE -->
-        <div class="sena-section-title">3. FORMULACIÓN DE LAS ACTIVIDADES DE APRENDIZAJE</div>
-
-        <div class="sena-sub-title">3.1 Actividad de Reflexión Inicial (Duración: 6 Horas)</div>
-        <p style="text-align: justify; margin-bottom: 0.6rem;">
-          En la producción digital actual, el debate ya no gira en torno a si la tecnología o la IA reemplazará al artista 3D, sino a cómo el profesional técnico que articula el rigor del modelado con sólidas competencias transversales (comunicación, ética, bilingüismo y bioseguridad) lidera los pipelines de trabajo más exigentes.
-        </p>
-        <p style="text-align: justify; font-style: italic; background: #f1f5f9; padding: 10px; border-left: 4px solid #39A900;">
-          <strong>Pregunta orientadora:</strong> ¿De qué manera la articulación entre la técnica digital especializada y la dimensión transversal (${activeTransversales.length > 0 ? activeTransversales.map(t => t.competencia).join(', ') : 'formativa integral'}) garantiza la competitividad, la ética y la calidad en el producto final entregado al cliente? Participe en la mesa redonda y foro técnico compartiendo su postura argumentada.
-        </p>
-
-        <div class="sena-sub-title">3.2 Actividad de Contextualización e Identificación de Conocimientos Previos (Duración: 10 Horas)</div>
-        <p style="text-align: justify;">
-          Revise los referentes visuales, las especificaciones del cliente y los estándares internacionales de la industria. Identifique las variables críticas para el desarrollo de la actividad:
-        </p>
-        <ul style="margin-left: 1.5rem; margin-top: 0.4rem; margin-bottom: 0.8rem;">
-          <li>Presupuesto técnico y requerimientos de la plataforma objetivo (cine, motor en tiempo real, manufactura aditiva o BIM).</li>
-          <li>Requisitos normativos y comunicativos aplicables al componente transversal.</li>
-          <li>Herramientas a emplear: <strong>${rap.herramientas_recomendadas.join(', ')}</strong>.</li>
-        </ul>
-
-        <div class="sena-sub-title">3.3 Actividades de Apropiación del Conocimiento — Saber y Hacer Técnico (Duración: ${Math.round(rap.horas * 0.55)} Horas)</div>
-        <p style="text-align: justify; margin-bottom: 0.6rem;">
-          A través de talleres prácticos, sesiones demostrativas guiadas y laboratorios en estaciones de trabajo, el aprendiz desarrollará las siguientes acciones técnicas fundamentales:
-        </p>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px;">
-            <strong style="color: #00324D; font-size: 9.5pt; text-transform: uppercase;">Conocimientos de Proceso (Hacer Técnico):</strong>
-            <ul style="font-size: 8.8pt; margin-left: 1.2rem; margin-top: 0.4rem;">
-              ${rap.conocimientos_proceso.map(p => `<li style="margin-bottom: 0.35rem;">${p}</li>`).join('')}
-            </ul>
+      <div class="sena-document" style="font-family: Arial, Helvetica, sans-serif; font-size: 12pt; line-height: 1.5; color: #000000;">
+        
+        <!-- ENCABEZADO OFICIAL SENA: LOGO CENTRADO Y TÍTULOS EN MAYÚSCULA NEGRITA ARIAL 12 -->
+        <div class="sena-guia-header">
+          <div class="sena-guia-logo">
+            ${this.getSenaLogoSVG()}
           </div>
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px;">
-            <strong style="color: #00324D; font-size: 9.5pt; text-transform: uppercase;">Conocimientos del Saber (Conceptos):</strong>
-            <ul style="font-size: 8.8pt; margin-left: 1.2rem; margin-top: 0.4rem;">
-              ${rap.conocimientos_saber.map(s => `<li style="margin-bottom: 0.35rem;">${s}</li>`).join('')}
-            </ul>
+          <div class="sena-guia-title">
+            PROCESO DE GESTIÓN DE FORMACIÓN PROFESIONAL INTEGRAL<br>
+            FORMATO GUÍA DE APRENDIZAJE
           </div>
         </div>
 
-        <!-- ACTIVIDADES TRANSVERSALES INTEGRADAS -->
+        <!-- 1. IDENTIFICACIÓN DE LA GUÍA DE APRENDIZAJE -->
+        <div class="sena-main-title">
+          1.&nbsp;&nbsp;&nbsp;&nbsp;IDENTIFICACIÓN DE LA GUÍA DE APRENDIZAJE
+        </div>
+
+        <ul class="sena-list" style="list-style-type: disc;">
+          <li><strong>Denominación del programa de formación:</strong> ${curriculo.info.denominacion}.</li>
+          <li><strong>Código del programa de formación:</strong> ${curriculo.info.codigo}.</li>
+          <li><strong>Nombre del proyecto:</strong> Desarrollo de contenidos digitales 3D interactivos, cinemáticos y prototipos de manufactura bajo flujos híbridos asistidos por IA.</li>
+          <li><strong>Fase del proyecto:</strong> ${faseProyectoTag}: ${trimInfo.fase}.</li>
+          <li><strong>Actividad de proyecto:</strong> Desarrollar y optimizar los activos 3D, cinemáticos o interactivos según especificaciones de producción y estándares técnicos.</li>
+          <li><strong>Centro de formación / Regional:</strong> ${centro}.</li>
+          <li><strong>Instructor / Diseñador:</strong> ${instructor}.</li>
+          <li>
+            <strong>Competencia:</strong>
+            <ul style="list-style-type: circle; margin-left: 1.5rem; margin-top: 0.35rem;">
+              <li style="margin-bottom: 0.35rem;">${rap.norma_codigo} – ${rap.norma_nombre}.</li>
+              ${activeTransversales.map(t => `<li style="margin-bottom: 0.35rem;">${t.codigo} – ${t.competencia}.</li>`).join('')}
+            </ul>
+          </li>
+          <li>
+            <strong>Resultados de aprendizaje a alcanzar:</strong>
+            <ul style="list-style-type: circle; margin-left: 1.5rem; margin-top: 0.35rem;">
+              <li style="margin-bottom: 0.35rem;">${rap.id} - ${rap.resultado_aprendizaje}.</li>
+              ${activeTransversales.map(t => `<li style="margin-bottom: 0.35rem;">${t.rap_id.replace('-', ' ')} - ${t.nombre_rap}.</li>`).join('')}
+            </ul>
+          </li>
+          <li><strong>Duración de la guía:</strong> ${totalHorasGuia} horas (${totalCreditosGuia} créditos).</li>
+        </ul>
+
+        <!-- 2. PRESENTACIÓN -->
+        <div class="sena-main-title">
+          2.&nbsp;&nbsp;&nbsp;&nbsp;PRESENTACIÓN
+        </div>
+
+        <p class="sena-body-text">
+          Apreciado aprendiz: la industria de contenidos digitales, videojuegos, arquitectura y efectos visuales demanda profesionales integrales capaces de dominar flujos de trabajo contemporáneos de alta eficiencia y rigor técnico. En esta guía de aprendizaje correspondiente a la actividad clave <strong>"${rap.actividad_clave}"</strong>, usted abordará los fundamentos de la técnica 3D y su aceleración asistida por Inteligencia Artificial${activeTransversales.length > 0 ? `, articulados armónicamente con las competencias transversales: ${activeTransversales.map(t => `<strong>"${t.competencia}"</strong>`).join(', ')}` : ''}.
+        </p>
+        <p class="sena-body-text">
+          A lo largo de este itinerario formativo, aprenderá a sintetizar conceptos, optimizar flujos de producción y generar como producto principal: <em>"${rap.producto_egresado || rap.evidencia}"</em>, asegurando que su entrega cumpla con los estándares internacionales de la industria moderna y los requerimientos del sector productivo.
+        </p>
+        <p class="sena-body-text">
+          Se le invita a participar de manera individual y colaborativa en cada momento formativo propuesto en las distintas evidencias, desarrollando sus capacidades, habilidades y talentos que lo harán una mejor persona, ciudadano y profesional idóneo para el sector productivo.
+        </p>
+
+        <!-- 3. FORMULACIÓN DE LAS ACTIVIDADES DE APRENDIZAJE -->
+        <div class="sena-main-title">
+          3.&nbsp;&nbsp;&nbsp;&nbsp;FORMULACIÓN DE LAS ACTIVIDADES DE APRENDIZAJE
+        </div>
+
+        <p class="sena-body-text">
+          En este apartado se describirán las actividades de aprendizaje planteadas para el desarrollo de la competencia, así como la indicación respectiva para que logre la elaboración de las evidencias en un total de ${totalHorasGuia} horas.
+        </p>
+
+        <p class="sena-body-text">
+          En el siguiente cuadro se observa para la competencia y las evidencias a entregar:
+        </p>
+
+        <!-- Cuadro resumen oficial de evidencias -->
+        <table class="sena-official-table">
+          <thead>
+            <tr>
+              <th style="width: 25%;">Competencia</th>
+              <th style="width: 25%;">Evidencia 1 (Técnica 3D)</th>
+              ${activeTransversales.map((t, idx) => `<th style="width: 25%;">Evidencia ${2 + idx} (${t.rap_id.replace('-', ' ')})</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>${rap.norma_codigo}</strong><br><span style="font-size: 11pt;">${rap.norma_nombre}</span></td>
+              <td>${rap.evidencia}</td>
+              ${activeTransversales.map(t => `<td>${t.evidencia}</td>`).join('')}
+            </tr>
+            <tr style="background: #f8fafc;">
+              <td style="font-weight: bold;">Horas por evidencia</td>
+              <td style="font-weight: bold; text-align: center;">${horasTecnicas} h</td>
+              ${activeTransversales.map(t => `<td style="font-weight: bold; text-align: center;">${t.horas} h</td>`).join('')}
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Actividad de reflexión inicial -->
+        <div class="sena-subtitle" style="margin-top: 1.5rem;">
+          •&nbsp;&nbsp;Actividad de reflexión inicial
+        </div>
+        <p class="sena-body-text">
+          En este primer momento se le invita a participar en una actividad que le permitirá familiarizarse con los retos de la producción 3D moderna e identificar el impacto de las nuevas tecnologías en el entorno laboral.
+        </p>
+        <p class="sena-body-text" style="font-style: italic; background: #f8fafc; border-left: 3px solid #000000; padding: 10px 14px; margin: 0.75rem 0;">
+          <strong>Pregunta orientadora:</strong> ¿De qué manera la articulación entre el rigor técnico del modelado 3D y las competencias formativas transversales garantiza productos digitales de mayor calidad, competitividad y valor ético en el mercado contemporáneo? Comparta su postura en la sesión formativa y foro técnico.
+        </p>
+
+        <!-- Actividad de contextualización -->
+        <div class="sena-subtitle" style="margin-top: 1.5rem;">
+          •&nbsp;&nbsp;Actividad de contextualización e identificación de conocimientos necesarios para el aprendizaje
+        </div>
+        <p class="sena-body-text">
+          Revise los referentes visuales, hojas de modelo y especificaciones técnicas de la industria. Identifique los requerimientos de entrega:
+        </p>
+        <ul class="sena-list" style="list-style-type: disc;">
+          <li>Presupuesto poligonal, topología y estándares de deformación según el motor o medio de destino.</li>
+          <li>Articulación con las normas comunicativas, de bioseguridad y bilingüismo requeridas.</li>
+          <li>Herramientas recomendadas: <strong>${rap.herramientas_recomendadas.join(', ')}</strong>.</li>
+        </ul>
+
+        <!-- 3.1 Actividad de aprendizaje 1 -->
+        <div class="sena-subtitle" style="margin-top: 1.75rem;">
+          3.1.&nbsp;&nbsp;Actividad de aprendizaje 1. ${rap.actividad_clave}
+        </div>
+        <p class="sena-body-text">
+          ${rap.resultado_aprendizaje}. Mediante laboratorios prácticos en software 3D especializado, el aprendiz aplicará las técnicas fundamentales de construcción digital, optimización volumétrica y estándares profesionales de producción.
+        </p>
+
+        <p class="sena-body-text">
+          <strong>Duración:</strong> ${horasTecnicas} horas.
+        </p>
+
+        <p class="sena-body-text">
+          <strong>Materiales de formación:</strong> estaciones de trabajo con software 3D (Blender / ZBrush / Substance / PureRef), guías de modelado, hojas de referencia ortográfica y componentes de asistencia digital.
+        </p>
+
+        <p class="sena-body-text">
+          <strong>Evidencias:</strong> a continuación, se describen las acciones y la evidencia que conforma la actividad de aprendizaje técnico.
+        </p>
+
+        <div class="sena-subtitle" style="margin-top: 1rem;">
+          •&nbsp;&nbsp;Evidencia ${rap.evidencia}.
+        </div>
+        <p class="sena-body-text">
+          En esta actividad se propone que desarrolle y valide el producto digital tridimensional cumpliendo a cabalidad con los criterios anatómicos, topológicos y métricos fijados en el proyecto.
+        </p>
+
+        <p class="sena-body-text" style="margin-bottom: 0.25rem;">
+          <strong>Lineamientos para la entrega de la evidencia:</strong>
+        </p>
+        <ul class="sena-list" style="list-style-type: circle;">
+          <li><strong>Producto a entregar:</strong> ${rap.evidencia}.</li>
+          <li><strong>Formato:</strong> Archivo digital nativo (.blend, .ztl, .fbx, .obj) junto con capturas ortográficas (PDF/Imágenes).</li>
+          <li><strong>Extensión:</strong> Completa según especificaciones del proyecto formativo.</li>
+          <li><strong>Espacio de envío:</strong> LMS Institucional SENA (Zajuna) en el espacio asignado por el instructor.</li>
+        </ul>
+
+        <!-- Actividades transversales articuladas (3.2, 3.3, etc.) -->
         ${activeTransversales.map((t, idx) => {
-          const actNum = `3.${4 + idx}`;
+          const actNum = `3.${2 + idx}`;
           return `
-            <div class="sena-sub-title" style="color: #7e22ce; border-left: 3px solid #a855f7; padding-left: 8px; margin-top: 1.25rem;">
-              ${actNum} ${t.titulo_actividad} (Duración: ${t.horas} Horas)
+            <div class="sena-subtitle" style="margin-top: 1.75rem;">
+              ${actNum}.&nbsp;&nbsp;Actividad de aprendizaje ${2 + idx}. ${t.titulo_actividad}
             </div>
-            <p style="text-align: justify; margin-bottom: 0.65rem; font-size: 9pt;">
+            <p class="sena-body-text">
               ${t.descripcion_actividad}
             </p>
-            <div style="background: #faf5ff; border: 1.5px solid #c084fc; padding: 10px 14px; border-radius: 6px; margin: 0.6rem 0 1rem 0;">
-              <strong style="color: #6b21a8; font-size: 8.5pt; text-transform: uppercase;">📦 Evidencia Transversal Requerida (${t.rap_id.replace('-', ' ')}):</strong>
-              <p style="margin-top: 0.25rem; font-size: 8.8pt; color: #3b0764; margin-bottom: 0;">${t.evidencia}</p>
+
+            <p class="sena-body-text">
+              <strong>Duración:</strong> ${t.horas} horas.
+            </p>
+
+            <p class="sena-body-text">
+              <strong>Materiales de formación:</strong> material pedagógico del componente formativo institucional (${t.rap_id.replace('-', ' ')}), biblioteca digital SENA y recursos de apoyo.
+            </p>
+
+            <div class="sena-subtitle" style="margin-top: 1rem;">
+              •&nbsp;&nbsp;Evidencia ${t.evidencia}.
             </div>
+
+            <p class="sena-body-text" style="margin-bottom: 0.25rem;">
+              <strong>Lineamientos para la entrega de la evidencia:</strong>
+            </p>
+            <ul class="sena-list" style="list-style-type: circle;">
+              <li><strong>Producto a entregar:</strong> ${t.evidencia}.</li>
+              <li><strong>Formato:</strong> Documento digital / PDF según lineamientos de la competencia transversal.</li>
+              <li><strong>Extensión:</strong> Acorde a la guía de la evidencia.</li>
+              <li><strong>Espacio de envío:</strong> LMS Institucional SENA en la evidencia asociada al componente transversal.</li>
+            </ul>
           `;
         }).join('')}
 
-        <div class="sena-sub-title">3.5 Actividades de Transferencia del Conocimiento (Duración: ${Math.round(rap.horas * 0.25)} Horas)</div>
-        <p style="text-align: justify;">
-          El aprendiz integrará armónicamente los conocimientos técnicos y transversales en la entrega formal del producto del proyecto formativo:
-        </p>
-        <div style="background: #f0fdf4; border: 1.5px solid #22c55e; padding: 12px; border-radius: 6px; margin: 0.8rem 0;">
-          <strong style="color: #15803d;">Producto Técnico Principal de Entrega:</strong>
-          <p style="margin-top: 0.25rem; font-size: 9.5pt; color: #14532d; font-weight: 600;">${rap.evidencia}</p>
+        <!-- 4. ACTIVIDADES DE EVALUACIÓN -->
+        <div class="sena-main-title" style="margin-top: 2rem;">
+          4.&nbsp;&nbsp;&nbsp;&nbsp;ACTIVIDADES DE EVALUACIÓN
         </div>
 
-        <!-- 4. ACTIVIDADES DE EVALUACIÓN -->
-        <div class="sena-section-title">4. ACTIVIDADES DE EVALUACIÓN</div>
-        <table class="sena-table">
+        <table class="sena-official-table">
           <thead>
             <tr>
-              <th style="width: 35%;">Evidencias de Aprendizaje</th>
-              <th style="width: 40%;">Criterios de Evaluación</th>
-              <th style="width: 25%;">Técnicas e Instrumentos</th>
+              <th style="width: 32%;">Evidencias de aprendizaje</th>
+              <th style="width: 40%;">Criterios de evaluación</th>
+              <th style="width: 28%;">Técnicas e instrumentos de evaluación</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>
-                <strong style="color: #00324D;">De Producto (Técnico 3D):</strong><br>
+                <strong>Evidencia de producto:</strong><br>
                 ${rap.evidencia}
               </td>
               <td>
-                <ul style="margin-left: 1rem; font-size: 8.5pt;">
-                  ${rap.criterios_evaluacion.map(c => `<li>${c}</li>`).join('')}
+                <ul style="margin: 0; padding-left: 1.25rem; line-height: 1.45;">
+                  ${rap.criterios_evaluacion.map(c => `<li style="margin-bottom: 0.35rem;">${c}</li>`).join('')}
                 </ul>
               </td>
               <td>
-                <strong>Técnica:</strong> Valoración de Producto Digital.<br><br>
-                <strong>Instrumento:</strong> Lista de Chequeo y Rúbrica Técnica Institucional SENA.
+                <strong>Técnica:</strong> Valoración de producto digital.<br><br>
+                <strong>Instrumento:</strong> Lista de verificación / Lista de chequeo (GFPI-F-023).
               </td>
             </tr>
             ${activeTransversales.map(t => `
-              <tr style="background: #faf5ff;">
-                <td style="vertical-align: top;">
-                  <strong style="color: #7e22ce;">De Desempeño y Producto (${t.rap_id.replace('-', ' ')}):</strong><br>
-                  <span style="font-size: 8.5pt; color: #3b0764;">${t.evidencia}</span>
+              <tr>
+                <td>
+                  <strong>Evidencia de desempeño y producto (${t.rap_id.replace('-', ' ')}):</strong><br>
+                  ${t.evidencia}
                 </td>
-                <td style="vertical-align: top;">
-                  <strong style="color: #7e22ce; font-size: 8.5pt;">Criterios Transversales (${t.rap_id.replace('-', ' ')}):</strong>
-                  <ul style="margin-left: 1rem; margin-top: 0.3rem; font-size: 8.5pt; color: #3b0764;">
-                    ${(t.criterios && t.criterios.length > 0) ? t.criterios.map(c => `<li style="margin-bottom: 0.2rem;">${c}</li>`).join('') : `
-                      <li style="margin-bottom: 0.2rem;">Aplica los conocimientos y terminología del componente transversal articulados directamente al proyecto 3D.</li>
-                      <li style="margin-bottom: 0.2rem;">Estructura las evidencias de acuerdo con las normas técnicas y comunicativas institucionales.</li>
+                <td>
+                  <ul style="margin: 0; padding-left: 1.25rem; line-height: 1.45;">
+                    ${(t.criterios && t.criterios.length > 0) ? t.criterios.map(c => `<li style="margin-bottom: 0.35rem;">${c}</li>`).join('') : `
+                      <li style="margin-bottom: 0.35rem;">Aplica los conocimientos y terminología del componente transversal articulados directamente al proyecto 3D.</li>
+                      <li style="margin-bottom: 0.35rem;">Estructura las evidencias de acuerdo con las normas técnicas y comunicativas institucionales.</li>
                     `}
                   </ul>
                 </td>
-                <td style="vertical-align: top; font-size: 8.5pt;">
-                  <strong>Técnica:</strong> Valoración de Evidencia Integrada.<br><br>
-                  <strong>Instrumento:</strong> Rúbrica de Evaluación Transversal SENA / Lista de Chequeo.
+                <td>
+                  <strong>Técnica:</strong> Valoración de evidencia integrada.<br><br>
+                  <strong>Instrumento:</strong> Lista de verificación / Rúbrica de evaluación SENA.
                 </td>
               </tr>
             `).join('')}
@@ -608,35 +623,72 @@ export class DocumentBuilder {
         </table>
 
         <!-- 5. GLOSARIO DE TÉRMINOS -->
-        <div class="sena-section-title">5. GLOSARIO DE TÉRMINOS</div>
-        <p style="font-size: 9pt; text-align: justify;">
-          <strong>Pipeline:</strong> Flujo secuencial estructurado de procesos técnicos y artísticos empleados para transformar una idea en un producto digital final.<br>
-          <strong>Blocking:</strong> Etapa inicial de modelado o animación donde se definen las proporciones globales, siluetas y masas principales sin entrar en microdetalle.<br>
-          <strong>PBR (Physically Based Rendering):</strong> Modelo de sombreado que simula el comportamiento físico real de la luz al interactuar con las superficies.<br>
-          <strong>ControlNet:</strong> Arquitectura de red neuronal que permite añadir controles estructurales y espaciales rígidos a modelos generativos de difusión.<br>
-          <strong>Competencia Transversal:</strong> Capacidad integral que abarca valores éticos, comunicativos, bilingües y de seguridad en el trabajo necesarios para el desempeño idóneo en cualquier entorno laboral.
+        <div class="sena-main-title" style="margin-top: 2rem;">
+          5.&nbsp;&nbsp;&nbsp;&nbsp;GLOSARIO DE TÉRMINOS
+        </div>
+
+        <p class="sena-body-text">
+          <strong>Blocking:</strong> etapa inicial de modelado o animación donde se definen las proporciones globales, siluetas y masas principales sin entrar en microdetalle.
+        </p>
+        <p class="sena-body-text">
+          <strong>ControlNet:</strong> arquitectura de red neuronal que permite añadir controles estructurales y espaciales rígidos a modelos generativos de difusión en flujos de producción gráfica.
+        </p>
+        <p class="sena-body-text">
+          <strong>PBR (Physically Based Rendering):</strong> modelo de sombreado que simula el comportamiento físico real de la luz al interactuar con las superficies y materiales.
+        </p>
+        <p class="sena-body-text">
+          <strong>Pipeline:</strong> flujo secuencial estructurado de procesos técnicos y artísticos empleados para transformar una idea en un producto digital final.
+        </p>
+        <p class="sena-body-text">
+          <strong>Retopología:</strong> proceso de reconstrucción de la geometría de una malla 3D de alta densidad para obtener una estructura poligonal limpia, optimizada y basada en cuadriláteros lista para animación o tiempo real.
         </p>
 
-        <!-- 6. CONTROL DEL DOCUMENTO -->
-        <div class="sena-section-title">6. CONTROL DEL DOCUMENTO</div>
-        <table class="sena-table" style="font-size: 8.5pt;">
+        <!-- 6. REFERENTES BIBLIOGRÁFICOS -->
+        <div class="sena-main-title" style="margin-top: 2rem;">
+          6.&nbsp;&nbsp;&nbsp;&nbsp;REFERENTES BIBLIOGRÁFICOS
+        </div>
+
+        <p class="sena-body-text">
+          Pinto, S., A. R., Cortés, P., O. y Alfaro, C., C. (2017). <em>Hacia la transformación de la práctica docente: modelo espiral de competencias TIC TAC TEP</em>. Pixel-Bit Revista de Medios y Educación, (51), pp. 37-51.
+        </p>
+        <p class="sena-body-text">
+          SENA. (2020). <em>Guía de Orientaciones para la Formación en Ambientes Virtuales de Aprendizaje V4</em>. Equipo de Acompañamiento a la Formación Virtual. Servicio Nacional de Aprendizaje.
+        </p>
+        <p class="sena-body-text">
+          SENA. (2024). <em>Diseño Curricular del Programa Tecnólogo en Producción de Contenidos 3D</em>. Dirección de Formación Profesional Integral. Centro Tecnológico del Mobiliario.
+        </p>
+
+        <!-- 7. CONTROL DEL DOCUMENTO -->
+        <div class="sena-main-title" style="margin-top: 2rem;">
+          7.&nbsp;&nbsp;&nbsp;&nbsp;CONTROL DEL DOCUMENTO
+        </div>
+
+        <table class="sena-official-table">
           <thead>
             <tr>
-              <th>Nombre</th>
-              <th>Cargo</th>
-              <th>Dependencia</th>
-              <th>Fecha</th>
+              <th style="width: 15%;"></th>
+              <th style="width: 30%;">Nombre</th>
+              <th style="width: 25%;">Cargo</th>
+              <th style="width: 20%;">Dependencia</th>
+              <th style="width: 10%;">Fecha</th>
             </tr>
           </thead>
           <tbody>
             <tr>
+              <td style="font-weight: bold;">Autor (es)</td>
               <td>${instructor}</td>
-              <td>Instructor Experto Técnico</td>
+              <td>Instructor Experto Técnico 3D / Diseñador Curricular</td>
               <td>${centro}</td>
               <td>Noviembre de 2026</td>
             </tr>
           </tbody>
         </table>
+
+        <!-- CÓDIGO DE VERSIÓN AL PIE -->
+        <div class="sena-doc-code-footer">
+          GFPI-F-135 V02
+        </div>
+
       </div>
     `;
   }
