@@ -1,0 +1,22 @@
+{
+  "name": "sena-contenidos-3d-hub",
+  "version": "1.0.0",
+  "description": "Plataforma Curricular e Institucional SENA — Tecnólogo en Producción de Contenidos 3D",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "sena",
+    "produccion-contenidos-3d",
+    "curriculo-sena",
+    "guias-aprendizaje",
+    "railway"
+  ],
+  "author": "Equipo de Desarrollo Curricular 3D & Nuevas Tecnologías — SENA",
+  "license": "MIT"
+}

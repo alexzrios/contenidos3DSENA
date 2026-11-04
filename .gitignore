@@ -1,0 +1,52 @@
+# ====================================================================
+# .gitignore — Proyecto Curricular y Plataforma SENA 3D
+# ====================================================================
+
+# Dependencias
+node_modules/
+package-lock.json
+
+# Entorno y Secretos (Seguridad)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+
+# Archivos de depuración y logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Archivos del Sistema Operativo
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Editores y entornos de desarrollo
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*~
+*.bak
+
+# Archivos de compilación o temporales
+tmp/
+temp/
+scratch/
+test_*.mjs
+test_*.py
+test_*.xls
+test_sheetml.xls
+
+# Herramientas de despliegue
+.railway/

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Curricular 3D — Formación Profesional Integral SENA</title>
+  
+  <!-- Tipografía Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Hojas de estilo -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/print-sena.css">
+</head>
+<body>
+
+  <!-- Encabezado y Navegación Principal -->
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-badge">SENA</span>
+      <div>
+        <div class="brand-title">Ecosistema Curricular de Tecnologías 3D</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted);">Red de Tecnologías Virtuales & Diseño Digital</div>
+      </div>
+    </div>
+
+    <!-- Selector de los 3 Programas Formativos -->
+    <div class="program-selector">
+      <button class="program-btn active" data-program="tecnologo" onclick="window.app.setProgram('tecnologo')">
+        <span>🎬</span> Tecnólogo en Producción de Contenidos 3D
+      </button>
+      <button class="program-btn modelado" data-program="modelado" onclick="window.app.setProgram('modelado')">
+        <span>📦</span> Técnico en Modelado 3D (Hacer)
+      </button>
+      <button class="program-btn animacion" data-program="animacion" onclick="window.app.setProgram('animacion')">
+        <span>✨</span> Técnico en Animación 3D (Ver)
+      </button>
+    </div>
+
+    <!-- Acciones Rápidas -->
+    <div class="header-actions">
+      <button class="btn-action primary" onclick="window.app.switchView('generador')">
+        📄 Generar Documento
+      </button>
+      <button class="btn-action" onclick="window.app.switchView('n8n')">
+        ⚡ n8n
+      </button>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal -->
+  <main class="container">
+    
+    <!-- Hero Banner con Resumen del Programa Seleccionado -->
+    <section class="hero-banner" id="heroContent">
+      <!-- Inyectado dinámicamente según el programa activo -->
+    </section>
+
+    <!-- Barra de Navegación de Vistas -->
+    <nav class="view-nav">
+      <button class="view-nav-btn active" data-view="infografia" onclick="window.app.switchView('infografia')">
+        <span>🎨</span> Infografía del Pipeline Híbrido (3D + IA)
+      </button>
+      <button class="view-nav-btn" data-view="malla" onclick="window.app.switchView('malla')">
+        <span>📊</span> Malla Curricular & RAPs por Trimestre
+      </button>
+      <button class="view-nav-btn" data-view="generador" onclick="window.app.switchView('generador')">
+        <span>📄</span> Generador Institucional SENA (Guías, Planeación, Proyecto)
+      </button>
+      <button class="view-nav-btn" data-view="n8n" onclick="window.app.switchView('n8n')">
+        <span>⚡</span> Automatización con n8n
+      </button>
+    </nav>
+
+    <!-- Contenedores Dinámicos de las Vistas -->
+    <div id="viewInfografia"></div>
+    <div id="viewMalla" style="display: none;"></div>
+    <div id="viewGenerador" style="display: none;"></div>
+    <div id="viewN8n" style="display: none;"></div>
+
+  </main>
+
+  <!-- Modal para Detalle Completo de cada RAP -->
+  <div class="modal-overlay" id="rapModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="window.app.closeModal()">✕</button>
+      <div id="modalDetails"></div>
+    </div>
+  </div>
+
+  <!-- Toast de Notificaciones -->
+  <div class="app-toast" id="appToast"></div>
+
+  <!-- Scripts Modulares ES6 -->
+  <script type="module" src="js/app.js?v=2.6"></script>
+
+</body>
+</html>
