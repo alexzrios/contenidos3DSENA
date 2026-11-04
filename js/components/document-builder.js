@@ -385,7 +385,27 @@ export class DocumentBuilder {
     const thStyle = 'background-color: #000000 !important; color: #ffffff !important; font-family: Arial, Helvetica, sans-serif !important; font-size: 12pt !important; font-weight: bold !important; padding: 8px 10px !important; border: 1px solid #000000 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;';
 
     return `
-      <div class="sena-document" style="font-family: Arial, Helvetica, sans-serif; font-size: 12pt; line-height: 1.5; color: #000000; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+      <div class="sena-document sena-guia-document" style="font-family: Arial, Helvetica, sans-serif; font-size: 12pt; line-height: 1.5; color: #000000; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+        <table class="sena-print-wrapper" style="width: 100%; border-collapse: collapse; border: none; margin: 0; padding: 0;">
+          <thead>
+            <tr>
+              <td style="border: none; padding: 0; margin: 0;">
+                <div class="sena-page-header-spacer"></div>
+              </td>
+            </tr>
+          </thead>
+          <tfoot>
+            <tr>
+              <td style="border: none; padding: 0; margin: 0;">
+                <div class="sena-page-footer-spacer sena-running-footer">
+                  GFPI-F-135 V02
+                </div>
+              </td>
+            </tr>
+          </tfoot>
+          <tbody>
+            <tr>
+              <td style="border: none; padding: 0; margin: 0;">
         
         <!-- ENCABEZADO OFICIAL SENA: LOGO CENTRADO Y TÍTULOS EN MAYÚSCULA NEGRITA ARIAL 12 -->
         <div class="sena-guia-header">
@@ -696,11 +716,10 @@ export class DocumentBuilder {
           </tbody>
         </table>
 
-        <!-- PIE INSTITUCIONAL REPETIDO EN CADA HOJA AL IMPRIMIR -->
-        <div class="sena-running-footer">
-          GFPI-F-135 V02
-        </div>
-
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     `;
   }

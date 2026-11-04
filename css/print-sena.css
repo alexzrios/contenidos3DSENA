@@ -1,44 +1,137 @@
 /* ====================================================================
-   ESTILOS OFICIALES SENA — FORMATO GUÍA DE APRENDIZAJE (GFPI-F-135 V02)
-   Estándar Institucional: Tipografía Arial 12pt, Títulos en Mayúscula Negrita,
-   Subtítulos en Negrita, Logo Centrado y Tablas Oficiales con Cabecera Negra.
+   ESTILOS OFICIALES SENA — FORMATOS INSTITUCIONALES Y GUÍA DE APRENDIZAJE
    ==================================================================== */
 
-/* Forzar que los navegadores mantengan los colores y fondos exactos tanto en pantalla como al imprimir */
-*,
-*::before,
-*::after {
-  -webkit-print-color-adjust: exact !important;
-  print-color-adjust: exact !important;
-  color-adjust: exact !important;
-}
-
+/* ESTILOS BASE PARA DOCUMENTOS INSTITUCIONALES (Instrumento, Planeación, Proyecto) */
 .sena-document {
-  font-family: Arial, Helvetica, sans-serif;
-  color: #000000;
+  font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif;
+  color: #111827;
   background: #ffffff;
   padding: 2.5cm 2cm;
-  font-size: 12pt;
+  font-size: 11pt;
   line-height: 1.5;
   box-sizing: border-box;
-  -webkit-print-color-adjust: exact !important;
-  print-color-adjust: exact !important;
 }
 
-/* ENCABEZADO OFICIAL GUÍA SENA */
-.sena-guia-header {
+/* Header Institucional Clásico (Instrumento, Planeación, Proyecto) */
+.sena-header-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+  border: 1.5px solid #00324D;
+}
+
+.sena-header-table td {
+  border: 1px solid #00324D;
+  padding: 8px 12px;
+  vertical-align: middle;
+}
+
+.sena-logo-box {
+  width: 120px;
+  text-align: center;
+  font-weight: 800;
+  color: #39A900;
+  font-size: 16pt;
+  background-color: #f8fafc;
+}
+
+.sena-doc-title {
+  text-align: center;
+  font-size: 13pt;
+  font-weight: bold;
+  color: #00324D;
+  text-transform: uppercase;
+}
+
+.sena-version-box {
+  width: 130px;
+  font-size: 8pt;
+  color: #4b5563;
+}
+
+/* Tablas Institucionales Estándar SENA (Azul Institucional #00324D) */
+.sena-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  font-size: 9.5pt;
+}
+
+.sena-table th {
+  background-color: #00324D;
+  color: #ffffff;
+  font-weight: bold;
+  text-align: left;
+  padding: 8px 10px;
+  border: 1px solid #00324D;
+}
+
+.sena-table td {
+  padding: 7px 10px;
+  border: 1px solid #cbd5e1;
+  vertical-align: top;
+}
+
+.sena-table tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+
+.sena-section-title {
+  color: #00324D;
+  font-size: 12pt;
+  font-weight: bold;
+  border-bottom: 2px solid #39A900;
+  padding-bottom: 4px;
+  margin-top: 1.75rem;
+  margin-bottom: 0.85rem;
+  text-transform: uppercase;
+}
+
+.sena-sub-title {
+  color: #0f172a;
+  font-size: 10.5pt;
+  font-weight: bold;
+  margin-top: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.sena-badge {
+  display: inline-block;
+  background-color: #e2e8f0;
+  color: #00324D;
+  font-size: 8pt;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+
+/* ====================================================================
+   ESTILOS EXCLUSIVOS PARA GUÍA DE APRENDIZAJE (GFPI-F-135 V02)
+   Estándar: Arial 12pt, Logo Centrado, Mayúscula Negrita, Tablas Negras
+   ==================================================================== */
+.sena-guia-document {
+  font-family: Arial, Helvetica, sans-serif !important;
+  color: #000000 !important;
+  font-size: 12pt !important;
+  line-height: 1.5 !important;
+  padding: 2.5cm 2cm;
+}
+
+.sena-guia-document .sena-guia-header {
   text-align: center;
   margin-bottom: 2rem;
 }
 
-.sena-guia-logo {
+.sena-guia-document .sena-guia-logo {
   display: flex;
   justify-content: center;
   align-items: center;
   margin-bottom: 1.25rem;
 }
 
-.sena-guia-title {
+.sena-guia-document .sena-guia-title {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 12pt;
   font-weight: bold;
@@ -48,8 +141,7 @@
   letter-spacing: 0.2px;
 }
 
-/* TÍTULOS PRINCIPALES DE SECCIÓN: ARIAL 12 MAYÚSCULA NEGRITA TODO EN MAYÚSCULA */
-.sena-main-title {
+.sena-guia-document .sena-main-title {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 12pt;
   font-weight: bold;
@@ -62,8 +154,8 @@
   break-after: avoid;
 }
 
-/* SUBTÍTULOS: ARIAL 12 NEGRITA */
-.sena-subtitle, .sena-sub-title {
+.sena-guia-document .sena-subtitle,
+.sena-guia-document .sena-sub-title {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 12pt;
   font-weight: bold;
@@ -75,8 +167,8 @@
   break-after: avoid;
 }
 
-/* TEXTOS Y PÁRRAFOS: ARIAL 12 */
-.sena-body-text, .sena-document p {
+.sena-guia-document .sena-body-text,
+.sena-guia-document p {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 12pt;
   line-height: 1.5;
@@ -85,8 +177,7 @@
   margin-bottom: 0.75rem;
 }
 
-/* LISTAS CON SANGRÍA OFICIAL */
-.sena-list {
+.sena-guia-document .sena-list {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 12pt;
   line-height: 1.55;
@@ -96,15 +187,15 @@
   padding-left: 0;
 }
 
-.sena-list li {
+.sena-guia-document .sena-list li {
   margin-bottom: 0.45rem;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 12pt;
   color: #000000;
 }
 
-/* TABLAS OFICIALES SENA (CABECERA NEGRA, BORDES SÓLIDOS, TEXTO ARIAL 12) */
-.sena-official-table {
+/* Tablas oficiales de la Guía: cabecera negra con texto blanco */
+.sena-guia-document .sena-official-table {
   width: 100%;
   border-collapse: collapse;
   margin: 1.25rem 0 1.5rem 0;
@@ -113,16 +204,16 @@
   page-break-inside: auto;
 }
 
-.sena-official-table thead {
+.sena-guia-document .sena-official-table thead {
   display: table-header-group;
 }
 
-.sena-official-table tr {
+.sena-guia-document .sena-official-table tr {
   page-break-inside: avoid;
   break-inside: avoid;
 }
 
-.sena-official-table th {
+.sena-guia-document .sena-official-table th {
   background-color: #000000 !important;
   color: #ffffff !important;
   font-family: Arial, Helvetica, sans-serif !important;
@@ -136,7 +227,7 @@
   print-color-adjust: exact !important;
 }
 
-.sena-official-table td {
+.sena-guia-document .sena-official-table td {
   padding: 8px 10px !important;
   border: 1px solid #000000 !important;
   font-family: Arial, Helvetica, sans-serif !important;
@@ -149,14 +240,37 @@
   print-color-adjust: exact !important;
 }
 
-.sena-official-table tr.bg-light td {
+.sena-guia-document .sena-official-table tr.bg-light td {
   background-color: #f1f5f9 !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
 
-/* PIE DE PÁGINA OFICIAL REPETIDO EN TODAS LAS HOJAS */
+/* Estructura envolvente para impresión de la Guía */
+table.sena-print-wrapper {
+  width: 100%;
+  border-collapse: collapse;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+table.sena-print-wrapper > thead > tr > td,
+table.sena-print-wrapper > tfoot > tr > td,
+table.sena-print-wrapper > tbody > tr > td {
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+
+.sena-page-header-spacer {
+  display: none;
+}
+
+.sena-page-footer-spacer,
 .sena-running-footer {
+  display: block;
   text-align: center;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 10.5pt;
@@ -166,20 +280,22 @@
   border-top: 1px solid #e2e8f0;
 }
 
-/* SALTOS DE PÁGINA LIMPIOS */
 .sena-page-break {
   page-break-before: always;
   break-before: page;
 }
 
+
 /* ====================================================================
    REGLAS EXCLUSIVAS PARA IMPRESIÓN Y EXPORTACIÓN A PDF
    ==================================================================== */
 @media print {
-  /* Suprimir encabezados y pies de página predeterminados del navegador (URL, fecha, título) */
   @page {
-    size: letter;
-    margin: 0mm !important;
+    size: letter portrait;
+    margin-top: 12mm;
+    margin-bottom: 12mm;
+    margin-left: 20mm;
+    margin-right: 20mm;
   }
 
   html, body {
@@ -187,7 +303,6 @@
     padding: 0 !important;
     background: #ffffff !important;
     color: #000000 !important;
-    font-family: Arial, Helvetica, sans-serif !important;
     width: 100% !important;
   }
 
@@ -219,44 +334,102 @@
     min-height: auto !important;
   }
 
-  /* El documento SENA asume los márgenes institucionales (2.2cm) */
   .sena-document {
-    padding: 2cm 2cm 2.2cm 2cm !important;
+    padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
     background: #ffffff !important;
+  }
+
+  /* REGLAS DE IMPRESIÓN EXCLUSIVAS DE LA GUÍA SENA */
+  .sena-guia-document {
     color: #000000 !important;
     font-size: 12pt !important;
   }
 
-  /* Cabeceras de tabla negras forzadas al imprimir */
-  .sena-official-table th {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border: 1px solid #000000 !important;
-  }
-
-  .sena-official-table td {
-    border: 1px solid #000000 !important;
-    color: #000000 !important;
-  }
-
-  /* El pie institucional se fija en la parte inferior de CADA PÁGINA IMPRESA */
-  .sena-running-footer {
-    display: block !important;
-    position: fixed !important;
-    bottom: 0.8cm !important;
-    left: 0 !important;
-    right: 0 !important;
+  table.sena-print-wrapper {
+    display: table !important;
     width: 100% !important;
+    border-collapse: collapse !important;
+    border: none !important;
     margin: 0 !important;
     padding: 0 !important;
+  }
+
+  table.sena-print-wrapper > thead {
+    display: table-header-group !important;
+  }
+
+  table.sena-print-wrapper > tfoot {
+    display: table-footer-group !important;
+  }
+
+  table.sena-print-wrapper > thead > tr > td,
+  table.sena-print-wrapper > tfoot > tr > td,
+  table.sena-print-wrapper > tbody > tr > td {
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  .sena-page-header-spacer {
+    display: block !important;
+    height: 10mm !important;
+  }
+
+  .sena-page-footer-spacer,
+  .sena-guia-document .sena-running-footer {
+    display: block !important;
+    position: static !important;
+    height: 16mm !important;
+    margin: 0 !important;
+    padding-top: 6mm !important;
     border-top: none !important;
     text-align: center !important;
     font-family: Arial, Helvetica, sans-serif !important;
     font-size: 10pt !important;
     color: #000000 !important;
     background: transparent !important;
+    box-sizing: border-box !important;
+  }
+
+  .sena-guia-document .sena-official-table th {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border: 1px solid #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .sena-guia-document .sena-official-table td {
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* REGLAS DE IMPRESIÓN PARA EL RESTO DE DOCUMENTOS (TABLAS INSTITUCIONALES AZULES) */
+  .sena-table th {
+    background-color: #00324D !important;
+    color: #ffffff !important;
+    border: 1px solid #00324D !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .sena-table td {
+    border: 1px solid #cbd5e1 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .sena-table tr {
+    page-break-inside: avoid;
+  }
+
+  .sena-section-title {
+    page-break-after: avoid;
   }
 
   .sena-page-break {
