@@ -5,7 +5,7 @@ import { CURRICULO_MODELADO } from '../data/curriculo-modelado.js';
 import { CURRICULO_ANIMACION } from '../data/curriculo-animacion.js';
 import { getInstrumentoForRap, INSTRUMENTOS_EVALUACION } from '../data/instrumentos-evaluacion.js';
 import { getAprendices, getEvaluacion, saveEvaluacion } from '../data/aprendices-db.js';
-import { getProyectoFormativo, getMacroproyectoForRap } from '../data/proyecto-formativo-db.js';
+import { getProyectoFormativo, getMacroproyectoForRap, getActividadesProyectoForRap, getPlaneacionProyecto } from '../data/proyecto-formativo-db.js';
 
 export class DocumentBuilder {
   constructor(containerId) {
@@ -366,6 +366,66 @@ export class DocumentBuilder {
   }
 
   // 1. GENERADOR DE GUÍA DE APRENDIZAJE OFICIAL SENA (GFPI-F-135 V02)
+
+  renderOfficialPlaneacionRows(list) {
+    if (!list || !Array.isArray(list)) return '';
+
+    const phaseCounts = {};
+    list.forEach(item => {
+      const p = item.fase || 'PLANEAR';
+      phaseCounts[p] = (phaseCounts[p] || 0) + 1;
+    });
+
+    const renderedPhases = new Set();
+
+    return list.map((item, idx) => {
+      const fase = item.fase || 'PLANEAR';
+      const isFirstInPhase = !renderedPhases.has(fase);
+      if (isFirstInPhase) renderedPhases.add(fase);
+      const rowspan = isFirstInPhase ? phaseCounts[fase] : 0;
+
+      const mTec = (item.competencia_tecnica || '').match(/^(\d+)\s*(.*)$/);
+      const codTec = mTec ? mTec[1] : '';
+      const nomTec = mTec ? mTec[2] : item.competencia_tecnica;
+
+      const mTrans = (item.competencia_transversal || '').match(/^(\d+)\s*(.*)$/);
+      const codTrans = mTrans ? mTrans[1] : '';
+      const nomTrans = mTrans ? mTrans[2] : item.competencia_transversal;
+
+      const bg = idx % 2 === 1 ? '#f8fafc' : '#ffffff';
+
+      return `
+        <tr style="background: ${bg}; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+          ${isFirstInPhase ? `
+            <td rowspan="${rowspan}" style="border: 1px solid #cbd5e1; padding: 8px 4px; text-align: center; vertical-align: middle; font-weight: 800; font-size: 8.5pt; background: #f1f5f9; color: #00324D; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+              ${this.escapeHtml(fase)}
+            </td>
+          ` : ''}
+          <td style="border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; font-size: 8pt; text-align: justify; line-height: 1.35;">
+            ${this.escapeHtml(item.actividad_proyecto)} <strong style="color: #64748b; font-size: 7.5pt; white-space: nowrap;">(48 hrs)</strong>
+          </td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px 4px; text-align: center; vertical-align: top; font-weight: bold; font-size: 8pt; color: #0369a1;">
+            <span style="display: inline-block; padding: 2px 5px; background: #e0f2fe; border-radius: 4px; border: 1px solid #bae6fd; font-size: 7.5pt;">${this.escapeHtml(item.guia_id)}</span>
+          </td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; font-size: 7.5pt; line-height: 1.3;">
+            ${codTec ? `<strong style="display: block; color: #0f172a; margin-bottom: 2px;">${this.escapeHtml(codTec)}</strong>` : ''}
+            <span style="color: #334155;">${this.escapeHtml(nomTec)}</span>
+          </td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; font-size: 7.5pt; line-height: 1.3; color: #0f172a;">
+            ${this.escapeHtml(item.rap_tecnico)}
+          </td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; font-size: 7.5pt; line-height: 1.3;">
+            ${codTrans ? `<strong style="display: block; color: #0f172a; margin-bottom: 2px;">${this.escapeHtml(codTrans)}</strong>` : ''}
+            <span style="color: #334155;">${this.escapeHtml(nomTrans)}</span>
+          </td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; font-size: 7.5pt; line-height: 1.3; color: #0f172a;">
+            ${this.escapeHtml(item.rap_transversal || 'Sustentación / Validación del Portafolio')}
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
   generateGuiaHTML(rapKey, centro, instructor) {
     const rap = RAPS_TECNICOS[rapKey] || RAPS_TECNICOS['RAP-01'];
     let curriculo = CURRICULO_TECNOLOGO;
@@ -382,6 +442,10 @@ export class DocumentBuilder {
 
     // RAPs transversales vinculados
     const activeTransversales = this.getActiveTransversales(rapKey);
+    const actsProyecto = getActividadesProyectoForRap(rapKey);
+    const actividadProyectoTxt = actsProyecto.length > 0
+      ? actsProyecto.map(a => '<strong>[' + a.guia_id + ']</strong> ' + this.escapeHtml(a.actividad_proyecto)).join('<br>')
+      : 'Desarrollar y optimizar los activos 3D, cinemáticos o interactivos según especificaciones de producción y estándares técnicos.';
     const horasTecnicas = rap.horas || 144;
     const horasTransversales = activeTransversales.reduce((acc, t) => acc + (t.horas || 48), 0);
     const totalHorasGuia = horasTecnicas + horasTransversales;
@@ -438,7 +502,7 @@ export class DocumentBuilder {
           <li><strong>Nombre del proyecto:</strong> ${nombreProyecto}.</li>
           ${macroproyecto ? `<li><strong>Macroproyecto formativo:</strong> ${macroproyecto.nombre} — ${macroproyecto.subtitulo}.</li>` : ''}
           <li><strong>Fase del proyecto:</strong> ${faseProyectoTag}: ${trimInfo.fase}.</li>
-          <li><strong>Actividad de proyecto:</strong> Desarrollar y optimizar los activos 3D, cinemáticos o interactivos según especificaciones de producción y estándares técnicos.</li>
+          <li><strong>Actividad de proyecto:</strong> ${actividadProyectoTxt}.</li>
           <li><strong>Centro de formación / Regional:</strong> ${centro}.</li>
           <li><strong>Instructor / Diseñador:</strong> ${instructor}.</li>
           <li>
@@ -542,6 +606,13 @@ export class DocumentBuilder {
         <div class="sena-subtitle" style="margin-top: 1.75rem;">
           3.1.&nbsp;&nbsp;Actividad de aprendizaje 1. ${rap.actividad_clave}
         </div>
+        ${actsProyecto.length > 0 ? `
+        <div style="background: #f1f5f9; border-left: 3px solid #00324D; padding: 6px 12px; margin: 0.5rem 0 0.85rem 0; font-size: 8.5pt;">
+          <strong style="color: #00324D;">Actividad de proyecto vinculada:</strong>
+          <div style="margin-top: 3px;">
+            ${actsProyecto.map(a => `<div style="margin-top: 2px;">• <strong>${a.guia_id} (${a.fase}):</strong> ${this.escapeHtml(a.actividad_proyecto)}</div>`).join('')}
+          </div>
+        </div>` : ''}
         <p class="sena-body-text">
           ${rap.resultado_aprendizaje}. Mediante laboratorios prácticos en software 3D especializado, el aprendiz aplicará las técnicas fundamentales de construcción digital, optimización volumétrica y estándares profesionales de producción.
         </p>
@@ -1780,338 +1851,127 @@ export class DocumentBuilder {
           </tbody>
         </table>
 
-        <!-- 3. PLANEACIÓN DEL PROYECTO -->
-        <div class="sena-section-title">3. PLANEACIÓN DEL PROYECTO (39 GUÍAS CONSECUTIVAS — PIPELINE TECNOLÓGICO)</div>
-        <p style="font-size: 8.5pt; color: #475569; margin-bottom: 0.75rem;">
-          Secuencia cronológica del Tecnólogo (7 trimestres lectivos). Cada fila corresponde a <strong>1 Guía de Aprendizaje consecutiva de 48 horas (1 crédito formativo)</strong>.
+                <!-- 3.0 RESUMEN DE COMPETENCIAS LABORALES ASOCIADAS POR FASE DEL PROYECTO -->
+        <div class="sena-sub-title" style="color: #0f172a; font-size: 10.5pt; font-weight: bold; margin-top: 1.5rem; margin-bottom: 0.4rem;">
+          3.0 MATRIZ DE COMPETENCIAS LABORALES ASOCIADAS POR FASE DEL PROYECTO (MALLA CURRICULAR)
+        </div>
+        <p style="text-align: justify; margin-bottom: 0.65rem; font-size: 8pt; color: #475569;">
+          Estructura curricular de competencias laborales articuladas con las fases del ciclo PHVA y el plan de formación tecnológico.
         </p>
-        <table class="sena-table">
+        <table class="sena-table" style="width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 8pt;">
           <thead>
-            <tr>
-              <th style="width: 13%;">Fase / Trimestre</th>
-              <th style="width: 33%;">Actividad del Proyecto (Verbo + Objeto + Condición)</th>
-              <th style="width: 10%; text-align: center;">Guía (48h)</th>
-              <th style="width: 22%;">Resultado de Aprendizaje Específico</th>
-              <th style="width: 22%;">Resultado de Aprendizaje Transversal / Clave</th>
+            <tr style="background: #e2e8f0; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+              <th style="width: 14%; border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-weight: bold; color: #00324D;">Fase del Proyecto</th>
+              <th style="width: 38%; border: 1px solid #cbd5e1; padding: 6px; text-align: left; font-weight: bold; color: #00324D;">3.3 Competencias Componente Específico (Técnicas 3D)</th>
+              <th style="width: 38%; border: 1px solid #cbd5e1; padding: 6px; text-align: left; font-weight: bold; color: #00324D;">3.4 Competencias Componente Básico (Transversales y Claves)</th>
+              <th style="width: 10%; border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-weight: bold; color: #00324D;">Horas Fase</th>
             </tr>
           </thead>
           <tbody>
-
             <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;">FASE 1 (PLANEAR)<br>(I Trimestre - Preproducción y Fundamentación)</td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Estructurar la biblia de preproducción redactando el guion técnico y clasificando las tomas en rutas de renderizado directo o guía 3D.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 01</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>250201022 Desarrollar storyboard de acuerdo con guion y contenido audiovisual</div><div style='margin-top: 3px; font-weight: 500;'>RAP 07: Elaborar guiones técnicos y storyboards de preproducción clasificando tomas y rutas de renderizado.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>240201530 Resultado de Aprendizaje de la Inducción</div><div style='margin-top: 3px;'>RAP 17: Identificar la dinámica organizacional del SENA y el rol de la formación profesional integral.</div></td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: top; font-weight: bold; background: #f8fafc; color: #00324D;">
+                FASE 1 (PLANEAR)<br><span style="font-size: 7pt; font-weight: normal; color: #64748b;">Trimestre I</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; vertical-align: top; font-size: 7.5pt; line-height: 1.35;">
+                <strong>250201022:</strong> Desarrollar storyboard de acuerdo con guion (192 h)<br>
+                <strong>220501083:</strong> Producir componentes de animación / Escultura (384 h)
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; vertical-align: top; font-size: 7.5pt; line-height: 1.35;">
+                <strong>240201530:</strong> Inducción Institucional SENA (48 h)<br>
+                <strong>240201524:</strong> Procesos de comunicación eficaces (48 h)<br>
+                <strong>240201526:</strong> Proyecto de vida y ética profesional (48 h)<br>
+                <strong>240202501:</strong> Idioma Inglés - Nivel 1 (48 h)
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: middle; font-weight: bold;">
+                528 h
+              </td>
             </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Diseñar viñetas de storyboard definiendo encuadres, ángulos y ritmos cinemáticos para la previsualización del teaser.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 02</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>250201022 Desarrollar storyboard de acuerdo con guion y contenido audiovisual</div><div style='margin-top: 3px; font-weight: 500;'>RAP 07: Elaborar guiones técnicos y storyboards de preproducción clasificando tomas y rutas de renderizado.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>240201524 Desarrollar procesos de comunicación eficaces y efectivos</div><div style='margin-top: 3px;'>RAP 18: Argumentar en forma oral y escrita atendiendo las exigencias de las diversas situaciones comunicativas.</div></td>
+            <tr style="background: #fafafa;">
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: top; font-weight: bold; background: #f8fafc; color: #00324D;">
+                FASE 2 (HACER)<br><span style="font-size: 7pt; font-weight: normal; color: #64748b;">Trimestres II, III, IV</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; vertical-align: top; font-size: 7.5pt; line-height: 1.35;">
+                <strong>220501083:</strong> Modelado 3D, UVs y texturizado PBR<br>
+                <strong>220101016:</strong> CAD paramétrico, Manufactura aditiva 3D y BIM (288 h)<br>
+                <strong>250201026:</strong> Animar elementos, Rigging y MoCap (192 h)<br>
+                <strong>250201039:</strong> VFX Asistido por IA y difusión generativa (336 h)
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; vertical-align: top; font-size: 7.5pt; line-height: 1.35;">
+                <strong>240201527:</strong> Hábitos saludables y cultura física (48 h)<br>
+                <strong>210201501:</strong> Derechos fundamentales del trabajo (48 h)<br>
+                <strong>240201529:</strong> Emprendimiento y modelo de negocio (48 h)<br>
+                <strong>220601501:</strong> Protección ambiental y SST (48 h)<br>
+                <strong>240202501:</strong> Idioma Inglés - Niveles 2, 3 y 4 (144 h)
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: middle; font-weight: bold;">
+                1.104 h
+              </td>
             </tr>
-
             <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Explorar el arte conceptual y lenguaje de formas del teaser mediante generación asistida por difusión 2D y armonías cromáticas.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 03</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>250201022 Desarrollar storyboard de acuerdo con guion y contenido audiovisual</div><div style='margin-top: 3px; font-weight: 500;'>RAP 08: Establecer la guía gráfica y hojas de modelo de elementos conceptuales manteniendo coherencia estilística.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>240201526 Enriquecer su proyecto de vida en un contexto productivo</div><div style='margin-top: 3px;'>RAP 19: Contribuir con el fortalecimiento de la cultura de paz a partir de la dignidad humana.</div></td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: top; font-weight: bold; background: #f8fafc; color: #00324D;">
+                FASE 3 (VERIFICAR)<br><span style="font-size: 7pt; font-weight: normal; color: #64748b;">Trimestres V, VI</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; vertical-align: top; font-size: 7.5pt; line-height: 1.35;">
+                <strong>250201039:</strong> Composición nodal en ACES, Render y Audio Foley<br>
+                <strong>220501096:</strong> Optimización en tiempo real a 60 FPS y Scripting POO (384 h)
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; vertical-align: top; font-size: 7.5pt; line-height: 1.35;">
+                <strong>220501501:</strong> Tecnologías de la Información y Comunicación TIC (48 h)<br>
+                <strong>240202501:</strong> Idioma Inglés - Niveles 5 y 6 (96 h)
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: middle; font-weight: bold;">
+                768 h
+              </td>
             </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Dibujar y estandarizar hojas de modelo (Model Sheets) ortográficas consistentes del personaje antropomorfo y props clave.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 04</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>250201022 Desarrollar storyboard de acuerdo con guion y contenido audiovisual</div><div style='margin-top: 3px; font-weight: 500;'>RAP 08: Establecer la guía gráfica y hojas de modelo de elementos conceptuales manteniendo coherencia estilística.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>240202501 Interactuar en lengua inglesa de forma oral y escrita</div><div style='margin-top: 3px;'>RAP 25: Intercambiar opiniones sobre situaciones cotidianas y laborales actuales, pasadas y futuras (Inglés 1).</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Bloquear los volúmenes primarios y proporciones anatómicas bípedas del personaje antropomorfo de forma manual y asistida por IA.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 05</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501083 Producir los componentes de la animación de acuerdo con técnicas de modelado</div><div style='margin-top: 3px; font-weight: 500;'>RAP 01: Construir mallas tridimensionales de escultura orgánica con precisión volumétrica y detalle anatómico.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240201524 Desarrollar procesos de comunicación eficaces</div><div style='margin-top: 3px;'>RAP 18: Sustentación de la memoria descriptiva de proporciones anatómicas y biomecánica del personaje.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Esculpir masa muscular, pliegues de indumentaria y juntas biomecánicas mediante pinceles de escultura digital y subdivisión.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 06</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501083 Producir los componentes de la animación de acuerdo con técnicas de modelado</div><div style='margin-top: 3px; font-weight: 500;'>RAP 01: Construir mallas tridimensionales de escultura orgánica con precisión volumétrica y detalle anatómico.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240202501 Interactuar en lengua inglesa de forma oral y escrita</div><div style='margin-top: 3px;'>RAP 25 (Inglés 1): Ficha técnica y glosario de terminología anatómica internacional y landmarks en inglés.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Estampar microtexturas orgánicas, mapas de alfas y accesorios técnicos de protección en la malla esculpida de alta resolución.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 07</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501083 Producir los componentes de la animación de acuerdo con técnicas de modelado</div><div style='margin-top: 3px; font-weight: 500;'>RAP 01: Construir mallas tridimensionales de escultura orgánica con precisión volumétrica y detalle anatómico.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240201526 Enriquecer su proyecto de vida en un contexto social</div><div style='margin-top: 3px;'>RAP 19: Principios éticos de diversidad, inclusión y dignidad en el diseño volumétrico de personajes.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Reconstruir la topología poligonal limpia en cuadriláteros (quads) trazando anillos y bucles (edge loops) para deformación articular.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 08</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501083 Producir los componentes de la animación de acuerdo con técnicas de modelado</div><div style='margin-top: 3px; font-weight: 500;'>RAP 02: Optimizar la topología poligonal de mallas 3D y desplegar mapas UV uniformes.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240201527 Generar hábitos saludables mediante actividad física</div><div style='margin-top: 3px;'>RAP 20: Ergonomía y postura adecuada en estaciones de trabajo 3D durante retopología intensiva.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Desplegar mapas UV uniformes y optimizar el empaquetado de islas sin distorsión respetando la escala de texels Game-Ready.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 09</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501083 Producir los componentes de la animación de acuerdo con técnicas de modelado</div><div style='margin-top: 3px; font-weight: 500;'>RAP 02: Optimizar la topología poligonal de mallas 3D y desplegar mapas UV uniformes.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240201527 Generar hábitos saludables mediante actividad física</div><div style='margin-top: 3px;'>RAP 20: Protocolo de pausas activas y ejercicios de muñeca para prevenir túnel carpiano en mapeo UV.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;">FASE 2 (HACER)<br>(II Trimestre - Superficies, CAD y Previs)</td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Proyectar y hornear mapas de alta a baja resolución (Baking de Normales, Curvatura y AO) sobre la malla optimizada.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 10</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501083 Producir los componentes de la animación de acuerdo con técnicas de modelado</div><div style='margin-top: 3px; font-weight: 500;'>RAP 03: Generar y aplicar materiales bajo estándares PBR mediante proyección de mapas y shaders.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>240201527 Generar hábitos saludables mediante programas de actividad física</div><div style='margin-top: 3px;'>RAP 20: Practicar hábitos saludables mediante la aplicación de fundamentos de nutrición e higiene.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Pintar capas de texturas PBR (Albedo, Roughness, Metallic) aplicando máscaras de suciedad y desgaste industrial.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 11</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501083 Producir los componentes de la animación de acuerdo con técnicas de modelado</div><div style='margin-top: 3px; font-weight: 500;'>RAP 03: Generar y aplicar materiales bajo estándares PBR mediante proyección de mapas y shaders.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>240202501 Interactuar en lengua inglesa de forma oral y escrita</div><div style='margin-top: 3px;'>RAP 26: Discutir sobre posibles soluciones a problemas dentro de un rango variado de contextos (Inglés 2).</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Ensamblar grafos nodales de shaders físicos con calibración lumínica y dispersión subsuperficial (SSS).</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 12</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501083 Producir los componentes de la animación de acuerdo con técnicas de modelado</div><div style='margin-top: 3px; font-weight: 500;'>RAP 03: Generar y aplicar materiales bajo estándares PBR mediante proyección de mapas y shaders.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240202501 Interactuar en lengua inglesa de forma oral y escrita</div><div style='margin-top: 3px;'>RAP 26 (Inglés 2): Especificaciones y documentación de mapas dieléctricos y metálicos en inglés.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Dibujar bocetos 2D paramétricos con dimensiones reales, cotas y restricciones geométricas estrictas del producto.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 13</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220101016 Generar prototipo digital según técnicas de modelado y producto</div><div style='margin-top: 3px; font-weight: 500;'>RAP 04: Modelar prototipos digitales CAD paramétricos hard-surface ajustados a tolerancias dimensionales.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240202501 Interactuar en lengua inglesa de forma oral y escrita</div><div style='margin-top: 3px;'>RAP 26 (Inglés 2): Planos de ensamble y simbología de ajuste mecánico ISO en idioma inglés.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Ejecutar operaciones sólidas 3D y booleanas conservando el árbol histórico editable en software CAD paramétrico.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 14</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220101016 Generar prototipo digital según técnicas de modelado y producto</div><div style='margin-top: 3px; font-weight: 500;'>RAP 04: Modelar prototipos digitales CAD paramétricos hard-surface ajustados a tolerancias dimensionales.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240201528 Razonamiento cuantitativo y matemáticas</div><div style='margin-top: 3px;'>RAP 22: Cálculo matemático de tolerancias dimensionales y encajes mecánicos en CAD.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Modelar ensambles mecánicos funcionales, generando la vista explosionada (Exploded View) y el manual técnico de ensamble.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 15</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220101016 Generar prototipo digital según técnicas de modelado y producto</div><div style='margin-top: 3px; font-weight: 500;'>RAP 04: Modelar prototipos digitales CAD paramétricos hard-surface ajustados a tolerancias dimensionales.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240202501 Interactuar en lengua inglesa de forma oral y escrita</div><div style='margin-top: 3px;'>RAP 26 (Inglés 2): Glosario técnico paramétrico y memoria descriptiva de piezas en inglés.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Construir la previsualización 3D (Previs) en el entorno cerrado animando cámaras virtuales a ritmo de teaser (Playblast en gris).</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 16</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>250201026 Animar elementos de la escena según técnicas y especificaciones</div><div style='margin-top: 3px; font-weight: 500;'>RAP 09: Construir previsualizaciones dinámicas en entorno 3D ajustando movimientos de cámara y ritmo cinemático.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240201528 Razonamiento cuantitativo y matemáticas</div><div style='margin-top: 3px;'>RAP 22: Matemáticas cinemáticas aplicadas: cálculo de distancia focal, FOV y velocidad de cámara.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;">FASE 3 (HACER)<br>(III Trimestre - Interoperabilidad y Manufactura)</td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Modelar elementos espaciales y componentes constructivos interiores de la fábrica/laboratorio en entorno BIM.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 17</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220101016 Generar prototipo digital según técnicas de modelado y producto</div><div style='margin-top: 3px; font-weight: 500;'>RAP 06: Estructurar modelos de información espacial bajo estándares abiertos IFC y documentación técnica BIM.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>210201501 Ejercer derechos fundamentales del trabajo en el marco de la constitución</div><div style='margin-top: 3px;'>RAP 21: Reconocer el trabajo como factor de movilidad social y transformación de la realidad.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Mapear atributos de propiedades bajo estándar abierto IFC, extrayendo cómputos métricos y memoria técnica asistida por LLMs.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 18</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220101016 Generar prototipo digital según técnicas de modelado y producto</div><div style='margin-top: 3px; font-weight: 500;'>RAP 06: Estructurar modelos de información espacial bajo estándares abiertos IFC y documentación técnica BIM.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>240201529 Gestionar procesos propios de la cultura emprendedora</div><div style='margin-top: 3px;'>RAP 22: Caracterizar la idea de negocio teniendo en cuenta las oportunidades del sector.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Configurar parámetros de laminación (slicing), soportes, infill y generar el archivo G-Code verificado para fabricación física o simulada.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 19</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220101016 Generar prototipo digital según técnicas de modelado y producto</div><div style='margin-top: 3px; font-weight: 500;'>RAP 05: Configurar parámetros de laminación y generar paquetes de código numérico (G-Code) o prototipos 3D.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>240202501 Interactuar en lengua inglesa de forma oral y escrita</div><div style='margin-top: 3px;'>RAP 27: Explicar las funciones de su ocupación laboral usando expresiones de acuerdo al nivel (Inglés 3).</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;">FASE 4 (HACER)<br>(IV Trimestre - Deformación e Inteligencia Artificial)</td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Construir armaduras 3D estructurando jerarquías de transformación, nodos padre/hijo y orientación correcta de joints.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 20</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>250201026 Animar elementos de la escena según técnicas y especificaciones</div><div style='margin-top: 3px; font-weight: 500;'>RAP 10: Integrar estructuras de armadura (Rigging), jerarquías de control y datos de captura de movimiento.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220601501 Aplicar prácticas de protección ambiental, seguridad y salud en el trabajo</div><div style='margin-top: 3px;'>RAP 23: Analizar las estrategias para el control de los impactos ambientales y accidentes laborales.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Configurar controladores cinemáticos con conmutación IK/FK y restricciones mecánicas para la actuación del personaje.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 21</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>250201026 Animar elementos de la escena según técnicas y especificaciones</div><div style='margin-top: 3px; font-weight: 500;'>RAP 10: Integrar estructuras de armadura (Rigging), jerarquías de control y datos de captura de movimiento.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>240202501 Interactuar en lengua inglesa de forma oral y escrita</div><div style='margin-top: 3px;'>RAP 28: Comprender información sobre situaciones cotidianas y laborales actuales y futuras (Inglés 4).</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Pintar pesos de deformación (Skinning), retargetear captura de movimiento MoCap y pulir curvas de animación en el Graph Editor.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 22</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>250201026 Animar elementos de la escena según técnicas y especificaciones</div><div style='margin-top: 3px; font-weight: 500;'>RAP 10: Integrar estructuras de armadura (Rigging), jerarquías de control y datos de captura de movimiento.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240202501 Interactuar en lengua inglesa de forma oral y escrita</div><div style='margin-top: 3px;'>RAP 28 (Inglés 4): Prompt engineering y descriptores cinematográficos en idioma inglés.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Estructurar plantillas de prompts técnicos parametrizados con adaptadores de control estructural (ControlNet) y reglas de restricción.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 23</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>250201039 Desarrollar efectos visuales digitales de acuerdo con proyecto audiovisual</div><div style='margin-top: 3px; font-weight: 500;'>RAP 11: Estructurar plantillas de prompts técnicos y reglas de restricción lógica asegurando consistencia.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240202501 Interactuar en lengua inglesa de forma oral y escrita</div><div style='margin-top: 3px;'>RAP 28 (Inglés 4): Informe comparativo en inglés sobre estabilidad de render y fidelidad temporal.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;">FASE 5 (VERIFICAR)<br>(V Trimestre - Render Asistido y Real-Time)</td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Configurar y exportar pases AOV 3D (Depth, Normal, Motion) vinculándolos a motores de difusión guiada para render sintético.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 24</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>250201039 Desarrollar efectos visuales digitales de acuerdo con proyecto audiovisual</div><div style='margin-top: 3px; font-weight: 500;'>RAP 12: Procesar y renderizar secuencias animadas vinculando pases de control 3D y difusión guiada.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501501 Aplicar tecnologías de la información y la comunicación (TICs)</div><div style='margin-top: 3px;'>RAP 24: Seleccionar herramientas TIC de acuerdo con las necesidades de información.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Aplicar filtros de consistencia temporal en video sintético eliminando flicker e interpolando cuadros con flujo óptico (RIFE).</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 25</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>250201039 Desarrollar efectos visuales digitales de acuerdo con proyecto audiovisual</div><div style='margin-top: 3px; font-weight: 500;'>RAP 12: Procesar y renderizar secuencias animadas vinculando pases de control 3D y difusión guiada.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>240202501 Interactuar en lengua inglesa de forma oral y escrita</div><div style='margin-top: 3px;'>RAP 29: Presentar un proceso para la realización de una actividad en su quehacer laboral (Inglés 5).</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Generar niveles de detalle geométrico (LODs) y oclusión de visibilidad en el motor gráfico respetando el presupuesto técnico.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 26</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501096 Desarrollar la solución de software de acuerdo con el diseño</div><div style='margin-top: 3px; font-weight: 500;'>RAP 14: Optimizar e integrar activos 3D en motores en tiempo real garantizando tasa de refresco a 60 FPS.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240202501 Interactuar en lengua inglesa de forma oral y escrita</div><div style='margin-top: 3px;'>RAP 29 (Inglés 5): Presentación ejecutiva en inglés de métricas de profiling y optimización a 60 FPS.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Hornear mapas de iluminación estática (Lightmaps), posicionar sondas de reflexión y optimizar materiales para tiempo real.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 27</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501096 Desarrollar la solución de software de acuerdo con el diseño</div><div style='margin-top: 3px; font-weight: 500;'>RAP 14: Optimizar e integrar activos 3D en motores en tiempo real garantizando tasa de refresco a 60 FPS.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>210201501 Ejercer derechos fundamentales del trabajo</div><div style='margin-top: 3px;'>RAP 24: Propiedad intelectual, licencias de software y derechos de autor en activos 3D digitales.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Analizar el rendimiento con perfiladores gráficos de CPU/GPU, reduciendo Draw Calls y estabilizando la escena a 60 FPS / VR.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 28</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501096 Desarrollar la solución de software de acuerdo con el diseño</div><div style='margin-top: 3px; font-weight: 500;'>RAP 14: Optimizar e integrar activos 3D en motores en tiempo real garantizando tasa de refresco a 60 FPS.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>210201501 Ejercer derechos fundamentales del trabajo</div><div style='margin-top: 3px;'>RAP 24: Normatividad laboral, modalidades de teletrabajo y contratos freelance para artistas 3D.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;">FASE 6 (VERIFICAR)<br>(VI Trimestre - Postproducción y Scripting)</td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Componer por nodos las capas de render, efectos visuales y máscaras de rotoscopia/segmentación asistida por IA.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 29</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>250201039 Desarrollar efectos visuales digitales de acuerdo con proyecto audiovisual</div><div style='margin-top: 3px; font-weight: 500;'>RAP 13: Componer y postproducir secuencias audiovisuales mediante integración de capas y correcciones digitales.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>240202501 Interactuar en lengua inglesa de forma oral y escrita</div><div style='margin-top: 3px;'>RAP 30: Implementar acciones de mejora relacionadas con el uso de expresiones y desempeño (Inglés 6).</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Aplicar corrección de color cinemática (Color Grading) en espacio de color ACES y efectos ópticos de cámara al teaser de 60s.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 30</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>250201039 Desarrollar efectos visuales digitales de acuerdo con proyecto audiovisual</div><div style='margin-top: 3px; font-weight: 500;'>RAP 13: Componer y postproducir secuencias audiovisuales mediante integración de capas y correcciones digitales.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240202501 Interactuar en lengua inglesa de forma oral y escrita</div><div style='margin-top: 3px;'>RAP 30 (Inglés 6): Subtitulado y adaptación cultural internacional del teaser audiovisual.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Diseñar, limpiar y sincronizar la banda sonora Foley, efectos sonoros y música, exportando el máster final del Teaser de 60 segundos.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 31</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>250201039 Desarrollar efectos visuales digitales de acuerdo con proyecto audiovisual</div><div style='margin-top: 3px; font-weight: 500;'>RAP 13: Componer y postproducir secuencias audiovisuales mediante integración de capas y correcciones digitales.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240202501 Interactuar en lengua inglesa de forma oral y escrita</div><div style='margin-top: 3px;'>RAP 30 (Inglés 6): Documentación de código y API técnica en inglés profesional estándar.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Programar código POO del sistema de locomoción híbrido (Teletransporte para VR y Primera Persona para simulador de escritorio PC).</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 32</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501096 Desarrollar la solución de software de acuerdo con el diseño</div><div style='margin-top: 3px; font-weight: 500;'>RAP 15: Programar scripts de lógica e interacción en lenguajes orientados a objetos con controladores y eventos.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>220501501 Aplicar tecnologías de la información (TICs)</div><div style='margin-top: 3px;'>RAP 23: Arquitectura de software, patrones de diseño de interacción y testing de UI.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Programar componentes detectores de colisión (Triggers/Colliders) y mecánicas físicas de agarre/movimiento de piezas del producto.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 33</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501096 Desarrollar la solución de software de acuerdo con el diseño</div><div style='margin-top: 3px; font-weight: 500;'>RAP 15: Programar scripts de lógica e interacción en lenguajes orientados a objetos con controladores y eventos.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240201529 Gestionar cultura emprendedora y empresarial</div><div style='margin-top: 3px;'>RAP 22: Presupuestación técnica y estimación de costos en desarrollo de software interactivo.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Programar el configurador dinámico de cambio de materiales en tiempo real con disparador de feedback multisensorial (audio y partículas).</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 34</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501096 Desarrollar la solución de software de acuerdo con el diseño</div><div style='margin-top: 3px; font-weight: 500;'>RAP 15: Programar scripts de lógica e interacción en lenguajes orientados a objetos con controladores y eventos.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240202501 Interactuar en lengua inglesa de forma oral y escrita</div><div style='margin-top: 3px;'>RAP 30 (Inglés 6): Pitch oral del teaser terminado en inglés ante jurado internacional.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Ejecutar pruebas de depuración (debugging), arquitectura de datos de interacción y consola de control del simulador interactivo.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 35</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501096 Desarrollar la solución de software de acuerdo con el diseño</div><div style='margin-top: 3px; font-weight: 500;'>RAP 15: Programar scripts de lógica e interacción en lenguajes orientados a objetos con controladores y eventos.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240201524 Desarrollar procesos de comunicación eficaces</div><div style='margin-top: 3px;'>RAP 18: Defensa argumentada del máster audiovisual ante el comité técnico y directivo.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;">FASE 7 (ACTUAR)<br>(VII Trimestre - Gemelos Digitales y Despliegue)</td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Diseñar e implementar menús navegables, botones y paneles HUD espaciales 3D (World-Space UI) según principios UX.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 36</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501096 Desarrollar la solución de software de acuerdo con el diseño</div><div style='margin-top: 3px; font-weight: 500;'>RAP 16: Compilar y desplegar aplicaciones interactivas multi-plataforma integrando interfaces de usuario UI/UX.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240201529 Gestionar cultura emprendedora y empresarial</div><div style='margin-top: 3px;'>RAP 22: Modelo de negocio Lean Canvas y propuesta de valor comercial del Gemelo Digital.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Integrar el personaje antropomorfo como asistente interactivo animado en el Gemelo Digital y compilar la aplicación ejecutable (.exe / WebGL).</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 37</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501096 Desarrollar la solución de software de acuerdo con el diseño</div><div style='margin-top: 3px; font-weight: 500;'>RAP 16: Compilar y desplegar aplicaciones interactivas multi-plataforma integrando interfaces de usuario UI/UX.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #7e22ce; font-weight: 600;'>240201529 Gestionar cultura emprendedora y empresarial</div><div style='margin-top: 3px;'>RAP 22: Pitch Deck comercial, canales de distribución y monetización de soluciones 3D.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Compilar, curar técnicamente y maquetar el portafolio profesional web del egresado integrando los tres macroproyectos.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 38</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501096 Desarrollar la solución de software de acuerdo con el diseño</div><div style='margin-top: 3px; font-weight: 500;'>RAP 31: Validar y entregar el producto interactivo/portafolio 3D final según requerimientos del sector productivo.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>Trabajo de Integración de Portafolio</div><div style='margin-top: 3px;'>Validación y compilación del portafolio técnico final del egresado.</div></td>
-            </tr>
-
-            <tr>
-              <td style="font-weight: 600; font-size: 8pt; vertical-align: top; background: #fafafa;"></td>
-              <td style="vertical-align: top; font-size: 8.5pt; line-height: 1.4;">Sustentar técnicamente el portafolio integral de soluciones 3D ante el comité evaluador institucional y sector productivo.</td>
-              <td style="text-align: center; vertical-align: top;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">GUÍA 39</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">48 Horas</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>220501096 Desarrollar la solución de software de acuerdo con el diseño</div><div style='margin-top: 3px; font-weight: 500;'>RAP 31: Validar y entregar el producto interactivo/portafolio 3D final según requerimientos del sector productivo.</div></td>
-              <td style="vertical-align: top; font-size: 8pt; line-height: 1.35;"><div style='font-size: 7.5pt; color: #4b5563; font-weight: 600;'>Sustentación Final</div><div style='margin-top: 3px;'>Defensa y sustentación técnica del portafolio profesional del egresado.</div></td>
+            <tr style="background: #fafafa;">
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: top; font-weight: bold; background: #f8fafc; color: #00324D;">
+                FASE 4 (ACTUAR)<br><span style="font-size: 7pt; font-weight: normal; color: #64748b;">Trimestre VII</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; vertical-align: top; font-size: 7.5pt; line-height: 1.35;">
+                <strong>220501096:</strong> Empaquetado final XR, Showreel comercial y despliegue multiplataforma
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; vertical-align: top; font-size: 7.5pt; line-height: 1.35;">
+                <strong>240201529:</strong> Pitch comercial, Sustentación y Validación ante panel de jurados (48 h)
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: middle; font-weight: bold;">
+                384 h
+              </td>
             </tr>
           </tbody>
         </table>
 
-        <!-- CONTROL DEL DOCUMENTO -->
+        <!-- 3. PLANEACIÓN DEL PROYECTO (TABLA OFICIAL SENA GFPI-F-016) -->
+        <div class="sena-section-title">3. PLANEACIÓN DEL PROYECTO (39 GUÍAS CONSECUTIVAS — PIPELINE TECNOLÓGICO)</div>
+        <p style="font-size: 8.5pt; color: #475569; margin-bottom: 0.75rem;">
+          Secuencia cronológica del Tecnólogo (7 trimestres lectivos). Cada fila corresponde a <strong>1 Guía de Aprendizaje consecutiva de 48 horas (1 crédito formativo)</strong>.
+        </p>
+        <table class="sena-table" style="font-size: 7.5pt; width: 100%; border-collapse: collapse; margin-bottom: 1.5rem;">
+          <thead>
+            <tr style="background: #e2e8f0; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+              <th colspan="7" style="text-align: center; font-weight: bold; padding: 7px; border: 1px solid #cbd5e1; font-size: 9pt; color: #00324D;">
+                3. PLANEACIÓN DEL PROYECTO
+              </th>
+            </tr>
+            <tr style="background: #f1f5f9; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+              <th rowspan="2" style="width: 10%; border: 1px solid #cbd5e1; padding: 5px; text-align: center; vertical-align: middle; font-weight: bold;">3.1 FASES DEL PROYECTO</th>
+              <th rowspan="2" style="width: 28%; border: 1px solid #cbd5e1; padding: 5px 7px; text-align: left; vertical-align: middle; font-weight: bold;">3.2 ACTIVIDADES DEL PROYECTO:<br><span style="font-size: 6.8pt; font-weight: normal; color: #475569;">Verbo (en infinitivo) - Objeto - Condición</span></th>
+              <th rowspan="2" style="width: 6%; border: 1px solid #cbd5e1; padding: 5px; text-align: center; vertical-align: middle; font-weight: bold;">GUÍA DE APRENDIZAJE</th>
+              <th colspan="2" style="width: 28%; border: 1px solid #cbd5e1; padding: 5px; text-align: center; font-weight: bold;">3.3. RESULTADOS DE APRENDIZAJE COMPONENTE ESPECÍFICO</th>
+              <th colspan="2" style="width: 28%; border: 1px solid #cbd5e1; padding: 5px; text-align: center; font-weight: bold;">3.4. RESULTADOS DE APRENDIZAJE COMPONENTE BÁSICO (TRANSVERSALES Y CLAVES)</th>
+            </tr>
+            <tr style="background: #f8fafc; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+              <th style="width: 14%; border: 1px solid #cbd5e1; padding: 4px; font-size: 7pt; text-align: center;">Código - competencia</th>
+              <th style="width: 14%; border: 1px solid #cbd5e1; padding: 4px; font-size: 7pt; text-align: center;">Denominación</th>
+              <th style="width: 14%; border: 1px solid #cbd5e1; padding: 4px; font-size: 7pt; text-align: center;">Código - competencia</th>
+              <th style="width: 14%; border: 1px solid #cbd5e1; padding: 4px; font-size: 7pt; text-align: center;">Denominación</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${this.renderOfficialPlaneacionRows(getPlaneacionProyecto())}
+          </tbody>
+        </table>
+
+                <!-- CONTROL DEL DOCUMENTO -->
         <div class="sena-section-title" style="margin-top: 2rem;">CONTROL DEL DOCUMENTO</div>
         <table class="sena-table" style="font-size: 8.5pt;">
           <thead>

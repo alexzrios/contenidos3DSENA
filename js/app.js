@@ -95,6 +95,12 @@ class App {
     this.curriculumTable.render(this.currentProgram);
   }
 
+  filterCompetencias(type, btnEl) {
+    if (this.curriculumTable && this.curriculumTable.filterCompetencias) {
+      this.curriculumTable.filterCompetencias(type, btnEl);
+    }
+  }
+
   changeDocType(newType) {
     this.documentBuilder.currentDocType = newType;
     const rapGroup = document.getElementById('rapSelectorGroup');

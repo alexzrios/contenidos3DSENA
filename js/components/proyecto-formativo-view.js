@@ -9,11 +9,15 @@ import {
   resetProyectoFormativo,
   PROYECTO_FORMATIVO_DEFAULT
 } from '../data/proyecto-formativo-db.js';
+import { COMPETENCIAS_MATRIZ } from '../data/normas-raps.js';
 
 export class ProyectoFormativoView {
   constructor(containerId) {
     this.container = document.getElementById(containerId);
-    this.currentMode = 'edit'; // 'edit' o 'preview'
+    const urlParams = (typeof window !== 'undefined' && window.location) ? new URLSearchParams(window.location.search) : null;
+    this.currentMode = (urlParams && urlParams.get('mode') === 'preview') ? 'preview' : 'edit';
+    const secParam = urlParams ? urlParams.get('sec') : null;
+    this.activeSection = (secParam === 'all') ? 'all' : (secParam ? parseInt(secParam, 10) : 1);
   }
 
   escapeHtml(str) {
@@ -28,25 +32,25 @@ export class ProyectoFormativoView {
 
   render() {
     if (!this.container) return;
+
     const pf = getProyectoFormativo();
 
     this.container.innerHTML = `
-      <div class="proyecto-container" style="max-width: 1200px; margin: 0 auto; padding-bottom: 3rem;">
+      <div class="proyecto-formativo-container" style="max-width: 1280px; margin: 0 auto; padding-bottom: 3rem;">
         
         <!-- Header de la sección (No se imprime) -->
-        <div class="no-print" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+        <div class="view-header-card no-print" style="margin-bottom: 1.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem 1.75rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div>
-              <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.35rem;">
-                <span class="badge cyan" style="font-size: 0.75rem;">GFPI-F-016 V03</span>
-                <span style="font-size: 1.35rem; font-weight: 800; color: #fff; letter-spacing: -0.5px;">📁 Proyecto Formativo</span>
+              <div style="display: flex; align-items: center; gap: 0.65rem;">
+                <span class="badge cyan" style="font-size: 0.82rem; padding: 3px 9px;">GFPI-F-016 V03</span>
+                <h1 style="font-size: 1.6rem; font-weight: 800; margin: 0; color: #fff;">📁 Proyecto Formativo</h1>
               </div>
-              <p style="font-size: 0.84rem; color: var(--text-muted); margin: 0;">
+              <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0.35rem 0 0 0;">
                 Definición y edición de los componentes, macroproyectos y entregables técnicos. Los cambios aquí actualizan automáticamente las Guías de Aprendizaje.
               </p>
             </div>
 
-            <!-- Botones de Acción Superiores -->
             <div style="display: flex; gap: 0.65rem; align-items: center; flex-wrap: wrap;">
               <!-- Toggle de Modos -->
               <div style="display: inline-flex; background: rgba(0,0,0,0.3); padding: 3px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
@@ -90,334 +94,539 @@ export class ProyectoFormativoView {
     this.render();
   }
 
+  onSelectSectionChange(val) {
+    const target = val === 'all' ? 'all' : parseInt(val, 10);
+    this.goToSection(target);
+  }
+
+  goToSection(secNum) {
+    this.activeSection = secNum;
+    const panels = document.querySelectorAll('.editor-section-panel');
+    const indicator = document.getElementById('activeSectionIndicator');
+    const selectNav = document.getElementById('sectionSelectNav');
+    const btnPrev = document.getElementById('btnNavPrevTop');
+    const btnNext = document.getElementById('btnNavNextTop');
+
+    if (selectNav) {
+      selectNav.value = String(secNum);
+    }
+
+    if (indicator) {
+      indicator.textContent = secNum === 'all' ? 'Vista Completa (10 Secciones)' : `Sección ${secNum} de 10`;
+    }
+
+    if (btnPrev) {
+      const isFirst = (secNum === 1 || secNum === 'all');
+      btnPrev.disabled = isFirst;
+      btnPrev.style.opacity = isFirst ? '0.35' : '1';
+      btnPrev.style.cursor = isFirst ? 'not-allowed' : 'pointer';
+    }
+
+    if (btnNext) {
+      if (secNum === 'all') {
+        btnNext.disabled = true;
+        btnNext.style.opacity = '0.35';
+        btnNext.style.cursor = 'not-allowed';
+      } else if (secNum === 10) {
+        btnNext.disabled = false;
+        btnNext.style.opacity = '1';
+        btnNext.style.cursor = 'pointer';
+        btnNext.innerHTML = 'Ver Oficial 👁️';
+      } else {
+        btnNext.disabled = false;
+        btnNext.style.opacity = '1';
+        btnNext.style.cursor = 'pointer';
+        btnNext.innerHTML = 'Siguiente <span>▶</span>';
+      }
+    }
+
+    panels.forEach(p => {
+      if (secNum === 'all' || String(p.dataset.sec) === String(secNum)) {
+        p.style.display = 'block';
+      } else {
+        p.style.display = 'none';
+      }
+    });
+
+    const editEl = document.getElementById('proyectoEditSection');
+    if (editEl) editEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+    nextSection() {
+    if (this.activeSection === 'all') return;
+    if (typeof this.activeSection === 'number' && this.activeSection < 10) {
+      this.goToSection(this.activeSection + 1);
+    } else if (this.activeSection === 10) {
+      this.setMode('preview');
+    }
+  }
+
+  prevSection() {
+    if (this.activeSection === 'all') return;
+    if (typeof this.activeSection === 'number' && this.activeSection > 1) {
+      this.goToSection(this.activeSection - 1);
+    }
+  }
+
+  filterPlaneacionPhase(phase) {
+    const cards = document.querySelectorAll('.planeacion-card');
+    const buttons = document.querySelectorAll('.planeacion-filter-btn');
+    buttons.forEach(btn => {
+      if (btn.dataset.phase === phase) {
+        btn.classList.add('active');
+        btn.style.background = 'rgba(56, 189, 248, 0.25)';
+        btn.style.borderColor = '#38bdf8';
+        btn.style.color = '#f8fafc';
+      } else {
+        btn.classList.remove('active');
+        btn.style.background = 'rgba(15, 23, 42, 0.6)';
+        btn.style.borderColor = 'rgba(148, 163, 184, 0.2)';
+        btn.style.color = 'var(--text-muted)';
+      }
+    });
+    cards.forEach(card => {
+      if (phase === 'ALL' || card.dataset.phase === phase) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  renderNavFooter(secNum, title) {
+    return `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1.1rem; border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.75rem;">
+        <button type="button" class="btn-action" onclick="window.app.proyectoView.prevSection()" ${secNum === 1 ? 'disabled style="opacity: 0.35; cursor: not-allowed;"' : 'style="font-size: 0.85rem;"'}>
+          ⬅️ Anterior
+        </button>
+        <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">
+          Paso ${secNum} de 10: <strong style="color: #f8fafc;">${title}</strong>
+        </span>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <button type="button" class="btn-action primary" onclick="window.app.proyectoView.save()" style="background: linear-gradient(135deg, #10b981, #059669); font-weight: 700; font-size: 0.85rem;">
+            💾 Guardar
+          </button>
+          <button type="button" class="btn-action primary" onclick="window.app.proyectoView.nextSection()" style="font-size: 0.85rem; font-weight: 700; background: linear-gradient(135deg, #0284c7, #2563eb);">
+            ${secNum === 10 ? '👁️ Previsualizar Oficial' : 'Siguiente ➡️'}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  renderOfficialPlaneacionRows(list) {
+    if (!list || !Array.isArray(list)) return '';
+
+    const phaseCounts = {};
+    list.forEach(item => {
+      const p = item.fase || 'PLANEAR';
+      phaseCounts[p] = (phaseCounts[p] || 0) + 1;
+    });
+
+    const renderedPhases = new Set();
+
+    return list.map((item, idx) => {
+      const fase = item.fase || 'PLANEAR';
+      const isFirstInPhase = !renderedPhases.has(fase);
+      if (isFirstInPhase) renderedPhases.add(fase);
+      const rowspan = isFirstInPhase ? phaseCounts[fase] : 0;
+
+      const mTec = (item.competencia_tecnica || '').match(/^(\d+)\s*(.*)$/);
+      const codTec = mTec ? mTec[1] : '';
+      const nomTec = mTec ? mTec[2] : item.competencia_tecnica;
+
+      const mTrans = (item.competencia_transversal || '').match(/^(\d+)\s*(.*)$/);
+      const codTrans = mTrans ? mTrans[1] : '';
+      const nomTrans = mTrans ? mTrans[2] : item.competencia_transversal;
+
+      const bg = idx % 2 === 1 ? '#f8fafc' : '#ffffff';
+
+      return `
+        <tr style="background: ${bg}; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+          ${isFirstInPhase ? `
+            <td rowspan="${rowspan}" style="border: 1px solid #cbd5e1; padding: 8px 4px; text-align: center; vertical-align: middle; font-weight: 800; font-size: 8.5pt; background: #f1f5f9; color: #00324D; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+              ${this.escapeHtml(fase)}
+            </td>
+          ` : ''}
+          <td style="border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; font-size: 8pt; text-align: justify; line-height: 1.35;">
+            ${this.escapeHtml(item.actividad_proyecto)} <strong style="color: #64748b; font-size: 7.5pt; white-space: nowrap;">(48 hrs)</strong>
+          </td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px 4px; text-align: center; vertical-align: top; font-weight: bold; font-size: 8pt; color: #0369a1;">
+            <span style="display: inline-block; padding: 2px 5px; background: #e0f2fe; border-radius: 4px; border: 1px solid #bae6fd; font-size: 7.5pt;">${this.escapeHtml(item.guia_id)}</span>
+          </td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; font-size: 7.5pt; line-height: 1.3;">
+            ${codTec ? `<strong style="display: block; color: #0f172a; margin-bottom: 2px;">${this.escapeHtml(codTec)}</strong>` : ''}
+            <span style="color: #334155;">${this.escapeHtml(nomTec)}</span>
+          </td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; font-size: 7.5pt; line-height: 1.3; color: #0f172a;">
+            ${this.escapeHtml(item.rap_tecnico)}
+          </td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; font-size: 7.5pt; line-height: 1.3;">
+            ${codTrans ? `<strong style="display: block; color: #0f172a; margin-bottom: 2px;">${this.escapeHtml(codTrans)}</strong>` : ''}
+            <span style="color: #334155;">${this.escapeHtml(nomTrans)}</span>
+          </td>
+          <td style="border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; font-size: 7.5pt; line-height: 1.3; color: #0f172a;">
+            ${this.escapeHtml(item.rap_transversal || 'Sustentación / Validación del Portafolio')}
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
   renderEditorForm(pf) {
-    const mp1 = pf.macroproyectos[0] || {};
-    const mp2 = pf.macroproyectos[1] || {};
-    const mp3 = pf.macroproyectos[2] || {};
-
-    const mp1Entregables = (mp1.entregables || []).join('\n');
-    const mp2Entregables = (mp2.entregables || []).join('\n');
-    const mp3Entregables = (mp3.entregables || []).join('\n');
-
-    const causas = (pf.problema.causas || []).join('\n');
-    const consecuencias = (pf.problema.consecuencias || []).join('\n');
-    const objEspecificos = (pf.objetivos.especificos || []).join('\n');
-
-    const riesgos = pf.restricciones_riesgos || [];
-    const prodResultados = pf.productos_resultados || {};
-    const prodFases = prodResultados.fases || [];
+    const info = pf.info_basica || {};
+    const mp1 = (pf.macroproyectos && pf.macroproyectos[0]) || {};
+    const mp2 = (pf.macroproyectos && pf.macroproyectos[1]) || {};
+    const mp3 = (pf.macroproyectos && pf.macroproyectos[2]) || {};
+    const prob = pf.problema || {};
+    const alc = pf.alcance || {};
     const inno = pf.innovacion_gestion || {};
     const val = pf.valoracion_productiva || {};
 
+    const tecnicas = COMPETENCIAS_MATRIZ.filter(c => c.tipo === 'tecnico');
+    const transversales = COMPETENCIAS_MATRIZ.filter(c => c.tipo === 'transversal');
+
+    const isPanelVisible = (secNum) => {
+      return (this.activeSection === 'all' || this.activeSection === secNum) ? 'display: block;' : 'display: none;';
+    };
+
     return `
-      <form id="formProyectoFormativo" onsubmit="event.preventDefault(); window.app.proyectoView.save();">
+      <form id="proyectoFormativoForm" onsubmit="event.preventDefault(); window.app.proyectoView.save();">
 
-        <!-- 1. INFORMACIÓN BÁSICA DEL PROYECTO -->
-        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
-          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
-            <span class="badge cyan">Sección 1</span>
-            <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">📋 Información Básica del Proyecto Formativo</span>
+        <!-- BARRA DE SUB-NAVEGACIÓN COMPACTA CON SELECT Y BOTONES ◀ / ▶ -->
+        <div class="editor-subnav-bar" style="background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.85rem 1.25rem; margin-bottom: 1.5rem; backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.85rem; box-shadow: 0 4px 14px rgba(0,0,0,0.25);">
+          
+          <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; flex: 1;">
+            <label for="sectionSelectNav" style="font-size: 0.85rem; font-weight: 700; color: #cbd5e1; display: flex; align-items: center; gap: 0.45rem; white-space: nowrap;">
+              <span>📑</span> Ir a la Sección:
+            </label>
+
+            <!-- Menú Desplegable de Secciones -->
+            <select id="sectionSelectNav" onchange="window.app.proyectoView.onSelectSectionChange(this.value)" style="background: #0b1329; color: #f8fafc; border: 1px solid #38bdf8; border-radius: 8px; padding: 0.5rem 0.9rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; flex: 1; min-width: 280px; max-width: 480px; outline: none; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);">
+              <option value="1" ${this.activeSection === 1 ? 'selected' : ''}>1. Información Básica del Proyecto</option>
+              <option value="2" ${this.activeSection === 2 ? 'selected' : ''}>2. Macroproyectos Nucleares (Hacer, Ver, Interactuar)</option>
+              <option value="3" ${this.activeSection === 3 ? 'selected' : ''}>3. Planteamiento del Problema (2.1)</option>
+              <option value="4" ${this.activeSection === 4 ? 'selected' : ''}>4. Justificación del Proyecto (2.2)</option>
+              <option value="5" ${this.activeSection === 5 ? 'selected' : ''}>5. Alcance, Beneficiarios e Impactos (2.3 - 2.5)</option>
+              <option value="6" ${this.activeSection === 6 ? 'selected' : ''}>6. Restricciones o Riesgos y Soluciones (2.5.3)</option>
+              <option value="7" ${this.activeSection === 7 ? 'selected' : ''}>7. Productos o Resultados del Proyecto (2.5.4)</option>
+              <option value="8" ${this.activeSection === 8 ? 'selected' : ''}>8. Innovación / Gestión Tecnológica (2.6)</option>
+              <option value="9" ${this.activeSection === 9 ? 'selected' : ''}>9. Valoración Productiva (2.7)</option>
+              <option value="10" ${this.activeSection === 10 ? 'selected' : ''}>10. Planeación del Proyecto (Actividades, Guías y Competencias)</option>
+              <option value="all" ${this.activeSection === 'all' ? 'selected' : ''}>👁️ Ver Todo el Proyecto (Edición Continua)</option>
+            </select>
+
+            <!-- Botones Compactos de Retroceder y Adelantar -->
+            <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
+              <button type="button" id="btnNavPrevTop" class="btn-action" onclick="window.app.proyectoView.prevSection()" title="Sección Anterior" style="padding: 0.5rem 0.85rem; font-size: 0.85rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700; cursor: ${this.activeSection === 1 ? 'not-allowed' : 'pointer'}; ${this.activeSection === 1 ? 'opacity: 0.35;' : ''}" ${this.activeSection === 1 ? 'disabled' : ''}>
+                <span>◀</span> Anterior
+              </button>
+
+              <button type="button" id="btnNavNextTop" class="btn-action primary" onclick="window.app.proyectoView.nextSection()" title="Siguiente Sección" style="padding: 0.5rem 0.95rem; font-size: 0.85rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700; background: linear-gradient(135deg, #0284c7, #2563eb); border: 1px solid #38bdf8; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);">
+                ${this.activeSection === 10 ? 'Ver Oficial 👁️' : 'Siguiente <span>▶</span>'}
+              </button>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" style="font-weight: 700; color: #38bdf8;">Nombre del Proyecto Formativo:</label>
-            <textarea id="pfNombre" class="form-input" rows="2" style="font-weight: 600; font-size: 0.95rem; line-height: 1.45;">${this.escapeHtml(pf.info_basica.nombre_proyecto)}</textarea>
-            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">Este nombre se sincroniza automáticamente como encabezado en todas las Guías de Aprendizaje.</div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1rem;">
-            <div>
-              <label class="form-label">Código del Proyecto:</label>
-              <input type="text" id="pfCodigo" class="form-input" value="${this.escapeHtml(pf.info_basica.codigo_proyecto || 'PRY-3D-2026-SENA-016')}">
-            </div>
-            <div>
-              <label class="form-label">Programa de Formación:</label>
-              <input type="text" id="pfPrograma" class="form-input" value="${this.escapeHtml(pf.info_basica.programa)}" readonly style="opacity: 0.75;">
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; margin-bottom: 1rem;">
-            <div>
-              <label class="form-label">Centro de Formación:</label>
-              <input type="text" id="pfCentro" class="form-input" value="${this.escapeHtml(pf.info_basica.centro)}">
-            </div>
-            <div>
-              <label class="form-label">Regional:</label>
-              <input type="text" id="pfRegional" class="form-input" value="${this.escapeHtml(pf.info_basica.regional)}">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Palabras Claves del Proyecto (separadas por comas):</label>
-            <textarea id="pfPalabrasClave" class="form-input" rows="2" style="font-size: 0.85rem;">${this.escapeHtml(pf.info_basica.palabras_clave)}</textarea>
+          <!-- Indicador de Sección Activa -->
+          <div style="display: flex; align-items: center; gap: 0.65rem;">
+            <span id="activeSectionIndicator" style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 5px 12px; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.3); white-space: nowrap;">
+              ${this.activeSection === 'all' ? 'Vista Completa' : `Sección ${this.activeSection} de 10`}
+            </span>
           </div>
         </div>
 
+        <!-- 1. INFORMACIÓN BÁSICA DEL PROYECTO (PANEL 1) -->
+        <div class="editor-section-panel" id="editorSec_1" data-sec="1" style="${isPanelVisible(1)}; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="badge cyan">Sección 1</span>
+              <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">📄 Información Básica del Proyecto Formativo</span>
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Campos Institucionales Oficiales</span>
+          </div>
 
-        <!-- 2. LOS TRES MACROPROYECTOS FORMATIVOS (PRODUCTOS Y ENTREGABLES TÉCNICOS) -->
-        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div>
+              <label class="form-label" style="font-weight: 700;">Nombre del Proyecto Formativo:</label>
+              <textarea id="pfNombre" class="form-input" rows="2" style="font-size: 0.95rem; font-weight: 600; line-height: 1.4;">${this.escapeHtml(info.nombre_proyecto)}</textarea>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Este nombre se sincroniza automáticamente como encabezado en todas las Guías de Aprendizaje.</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+              <div>
+                <label class="form-label">Código del Proyecto:</label>
+                <input type="text" id="pfCodigo" class="form-input" value="${this.escapeHtml(info.codigo_proyecto)}">
+              </div>
+              <div>
+                <label class="form-label">Programa de Formación:</label>
+                <input type="text" class="form-input" value="${this.escapeHtml(info.programa)}" disabled style="opacity: 0.7;">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+              <div>
+                <label class="form-label">Centro de Formación:</label>
+                <input type="text" id="pfCentro" class="form-input" value="${this.escapeHtml(info.centro)}">
+              </div>
+              <div>
+                <label class="form-label">Regional:</label>
+                <input type="text" id="pfRegional" class="form-input" value="${this.escapeHtml(info.regional)}">
+              </div>
+            </div>
+
+            <div>
+              <label class="form-label">Palabras Claves del Proyecto (separadas por comas):</label>
+              <input type="text" id="pfPalabrasClave" class="form-input" value="${this.escapeHtml(info.palabras_clave)}">
+            </div>
+          </div>
+          ${this.renderNavFooter(1, 'Información Básica')}
+        </div>
+
+        <!-- 2. LOS TRES MACROPROYECTOS FORMATIVOS (PANEL 2) -->
+        <div class="editor-section-panel" id="editorSec_2" data-sec="2" style="${isPanelVisible(2)}; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
               <span class="badge purple">Sección 2</span>
               <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">🎯 Tres Macroproyectos Nucleares (Productos Técnicos)</span>
             </div>
-            <span style="font-size: 0.78rem; color: #a78bfa; background: rgba(167, 139, 250, 0.1); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(167, 139, 250, 0.2);">
-              💡 Conserva el pipeline: Los procesos y normas son fijos, los productos y entregables son adaptables.
-            </span>
+            <span style="font-size: 0.75rem; color: #a855f7;">💡 Conserva el pipeline: Los procesos y normas son fijos, los productos y entregables son adaptables.</span>
           </div>
 
-          <!-- Macroproyecto 1: 3D PARA HACER -->
-          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.25rem;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
-              <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span class="badge cyan">Macroproyecto 1</span>
-                <strong style="color: #38bdf8; font-size: 1rem;">${this.escapeHtml(mp1.nombre || '3D PARA HACER')}</strong>
+          <!-- MP1: 3D PARA HACER -->
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <span class="badge cyan" style="font-weight: 800;">MACROPROYECTO 1</span>
+                <strong style="color: #38bdf8; font-size: 1.05rem;">${this.escapeHtml(mp1.nombre || '3D PARA HACER')}</strong>
               </div>
-              <span style="font-size: 0.75rem; color: var(--text-muted);">${mp1.guias_rango || 'GUÍA 01 a 14'} · 672 Horas</span>
+              <span style="font-size: 0.8rem; color: var(--text-muted);">${mp1.guias_rango || 'GUÍA 01 a GUÍA 14'} • ${mp1.horas || 672} Horas</span>
             </div>
-
-            <div class="form-group">
-              <label class="form-label" style="font-size: 0.8rem; color: var(--text-muted);">Enfoque / Subtítulo:</label>
+            <div style="margin-bottom: 0.75rem;">
+              <label class="form-label" style="font-size: 0.82rem;">Subtítulo / Alcance Técnico:</label>
               <input type="text" id="mp1Subtitulo" class="form-input" value="${this.escapeHtml(mp1.subtitulo)}">
             </div>
-
-            <div class="form-group" style="margin-bottom: 0;">
-              <label class="form-label" style="font-size: 0.82rem; color: #38bdf8; font-weight: 700;">
-                Entregables y Productos Técnicos <span style="font-size: 0.72rem; color: var(--text-dim); font-weight: normal;">— 1 entregable por línea</span>:
-              </label>
-              <textarea id="mp1Entregables" class="form-input" rows="5" style="font-size: 0.83rem; line-height: 1.45;">${this.escapeHtml(mp1Entregables)}</textarea>
+            <div>
+              <label class="form-label" style="font-size: 0.82rem;">Entregables Técnicos Principales (1 por línea):</label>
+              <textarea id="mp1Entregables" class="form-input" rows="4" style="font-size: 0.85rem; line-height: 1.45;">${(mp1.entregables || []).map(e => this.escapeHtml(e)).join('\n')}</textarea>
             </div>
           </div>
 
-          <!-- Macroproyecto 2: 3D PARA VER -->
-          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(167, 139, 250, 0.25); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.25rem;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
-              <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span class="badge purple">Macroproyecto 2</span>
-                <strong style="color: #a78bfa; font-size: 1rem;">${this.escapeHtml(mp2.nombre || '3D PARA VER')}</strong>
+          <!-- MP2: 3D PARA VER -->
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <span class="badge purple" style="font-weight: 800;">MACROPROYECTO 2</span>
+                <strong style="color: #c084fc; font-size: 1.05rem;">${this.escapeHtml(mp2.nombre || '3D PARA VER')}</strong>
               </div>
-              <span style="font-size: 0.75rem; color: var(--text-muted);">${mp2.guias_rango || 'GUÍA 15 a 28'} · 672 Horas</span>
+              <span style="font-size: 0.8rem; color: var(--text-muted);">${mp2.guias_rango || 'GUÍA 15 a GUÍA 28'} • ${mp2.horas || 672} Horas</span>
             </div>
-
-            <div class="form-group">
-              <label class="form-label" style="font-size: 0.8rem; color: var(--text-muted);">Enfoque / Subtítulo:</label>
+            <div style="margin-bottom: 0.75rem;">
+              <label class="form-label" style="font-size: 0.82rem;">Subtítulo / Alcance Técnico:</label>
               <input type="text" id="mp2Subtitulo" class="form-input" value="${this.escapeHtml(mp2.subtitulo)}">
             </div>
-
-            <div class="form-group" style="margin-bottom: 0;">
-              <label class="form-label" style="font-size: 0.82rem; color: #a78bfa; font-weight: 700;">
-                Entregables y Productos Técnicos <span style="font-size: 0.72rem; color: var(--text-dim); font-weight: normal;">— 1 entregable por línea</span>:
-              </label>
-              <textarea id="mp2Entregables" class="form-input" rows="6" style="font-size: 0.83rem; line-height: 1.45;">${this.escapeHtml(mp2Entregables)}</textarea>
+            <div>
+              <label class="form-label" style="font-size: 0.82rem;">Entregables Técnicos Principales (1 por línea):</label>
+              <textarea id="mp2Entregables" class="form-input" rows="4" style="font-size: 0.85rem; line-height: 1.45;">${(mp2.entregables || []).map(e => this.escapeHtml(e)).join('\n')}</textarea>
             </div>
           </div>
 
-          <!-- Macroproyecto 3: 3D PARA INTERACTUAR -->
-          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 1.25rem;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
-              <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span class="badge emerald">Macroproyecto 3</span>
-                <strong style="color: #34d399; font-size: 1rem;">${this.escapeHtml(mp3.nombre || '3D PARA INTERACTUAR')}</strong>
+          <!-- MP3: 3D PARA INTERACTUAR -->
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+              <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <span class="badge emerald" style="font-weight: 800;">MACROPROYECTO 3</span>
+                <strong style="color: #34d399; font-size: 1.05rem;">${this.escapeHtml(mp3.nombre || '3D PARA INTERACTUAR')}</strong>
               </div>
-              <span style="font-size: 0.75rem; color: var(--text-muted);">${mp3.guias_rango || 'GUÍA 29 a 37'} · 432 Horas</span>
+              <span style="font-size: 0.8rem; color: var(--text-muted);">${mp3.guias_rango || 'GUÍA 29 a GUÍA 37'} • ${mp3.horas || 432} Horas</span>
             </div>
-
-            <div class="form-group">
-              <label class="form-label" style="font-size: 0.8rem; color: var(--text-muted);">Enfoque / Subtítulo:</label>
+            <div style="margin-bottom: 0.75rem;">
+              <label class="form-label" style="font-size: 0.82rem;">Subtítulo / Alcance Técnico:</label>
               <input type="text" id="mp3Subtitulo" class="form-input" value="${this.escapeHtml(mp3.subtitulo)}">
             </div>
-
-            <div class="form-group" style="margin-bottom: 0;">
-              <label class="form-label" style="font-size: 0.82rem; color: #34d399; font-weight: 700;">
-                Entregables y Productos Técnicos <span style="font-size: 0.72rem; color: var(--text-dim); font-weight: normal;">— 1 entregable por línea</span>:
-              </label>
-              <textarea id="mp3Entregables" class="form-input" rows="6" style="font-size: 0.83rem; line-height: 1.45;">${this.escapeHtml(mp3Entregables)}</textarea>
+            <div>
+              <label class="form-label" style="font-size: 0.82rem;">Entregables Técnicos Principales (1 por línea):</label>
+              <textarea id="mp3Entregables" class="form-input" rows="4" style="font-size: 0.85rem; line-height: 1.45;">${(mp3.entregables || []).map(e => this.escapeHtml(e)).join('\n')}</textarea>
             </div>
           </div>
+          ${this.renderNavFooter(2, 'Macroproyectos Nucleares')}
         </div>
 
-
-        <!-- 3. PLANTEAMIENTO DEL PROBLEMA O NECESIDAD -->
-        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
-          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
-            <span class="badge amber">Sección 3</span>
-            <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">⚠️ Planteamiento del Problema</span>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" style="font-weight: 700; color: #fbbf24;">Descripción del Problema o Necesidad del Sector:</label>
-            <textarea id="pfProblemaDesc" class="form-input" rows="4" style="font-size: 0.88rem; line-height: 1.45;">${this.escapeHtml(pf.problema.descripcion)}</textarea>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" style="font-weight: 700; color: #f8fafc;">Pregunta Problémica de Investigación:</label>
-            <textarea id="pfPregunta" class="form-input" rows="2" style="font-size: 0.88rem; line-height: 1.45;">${this.escapeHtml(pf.problema.pregunta_investigacion)}</textarea>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
-            <div>
-              <label class="form-label" style="color: #f87171; font-weight: 700;">
-                Causas Identificadas <span style="font-size: 0.72rem; color: var(--text-dim); font-weight: normal;">— 1 por línea</span>:
-              </label>
-              <textarea id="pfCausas" class="form-input" rows="5" style="font-size: 0.82rem; line-height: 1.45;">${this.escapeHtml(causas)}</textarea>
+        <!-- 3. PLANTEAMIENTO DEL PROBLEMA O NECESIDAD (PANEL 3) -->
+        <div class="editor-section-panel" id="editorSec_3" data-sec="3" style="${isPanelVisible(3)}; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="badge amber">Sección 3</span>
+              <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">🔍 Planteamiento del Problema o Necesidad (2.1)</span>
             </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Justificación Pedagógica y Contexto</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
             <div>
-              <label class="form-label" style="color: #fca5a5; font-weight: 700;">
-                Consecuencias en el Entorno Productivo <span style="font-size: 0.72rem; color: var(--text-dim); font-weight: normal;">— 1 por línea</span>:
-              </label>
-              <textarea id="pfConsecuencias" class="form-input" rows="5" style="font-size: 0.82rem; line-height: 1.45;">${this.escapeHtml(consecuencias)}</textarea>
+              <label class="form-label">Descripción del Problema o Necesidad:</label>
+              <textarea id="pfProblemaDesc" class="form-input" rows="4" style="line-height: 1.45;">${this.escapeHtml(prob.descripcion)}</textarea>
+            </div>
+
+            <div>
+              <label class="form-label">Pregunta de Investigación / Problema Central:</label>
+              <textarea id="pfPregunta" class="form-input" rows="2" style="line-height: 1.45; font-style: italic;">${this.escapeHtml(prob.pregunta_investigacion)}</textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+              <div>
+                <label class="form-label" style="color: #f87171;">Causas del Problema (1 por línea):</label>
+                <textarea id="pfCausas" class="form-input" rows="3" style="line-height: 1.4;">${(prob.causas || []).map(c => this.escapeHtml(c)).join('\n')}</textarea>
+              </div>
+              <div>
+                <label class="form-label" style="color: #fb923c;">Consecuencias del Problema (1 por línea):</label>
+                <textarea id="pfConsecuencias" class="form-input" rows="3" style="line-height: 1.4;">${(prob.consecuencias || []).map(c => this.escapeHtml(c)).join('\n')}</textarea>
+              </div>
             </div>
           </div>
+          ${this.renderNavFooter(3, 'Planteamiento del Problema')}
         </div>
 
-
-        <!-- 4. JUSTIFICACIÓN Y OBJETIVOS -->
-        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
-          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
-            <span class="badge emerald">Sección 4</span>
-            <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">💡 Justificación y Objetivos</span>
+        <!-- 4. JUSTIFICACIÓN DEL PROYECTO (PANEL 4) -->
+        <div class="editor-section-panel" id="editorSec_4" data-sec="4" style="${isPanelVisible(4)}; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="badge emerald">Sección 4</span>
+              <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">💡 Justificación del Proyecto (2.2)</span>
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Pertinencia y Enfoque ABP</span>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" style="font-weight: 700; color: #34d399;">Justificación Pedagógica y Productiva del Proyecto:</label>
-            <textarea id="pfJustificacion" class="form-input" rows="5" style="font-size: 0.88rem; line-height: 1.45;">${this.escapeHtml(pf.justificacion)}</textarea>
+          <div>
+            <label class="form-label">Texto de Justificación Oficial:</label>
+            <textarea id="pfJustificacion" class="form-input" rows="6" style="line-height: 1.5;">${this.escapeHtml(pf.justificacion)}</textarea>
           </div>
-
-          <div class="form-group">
-            <label class="form-label" style="font-weight: 700; color: #f8fafc;">Objetivo General del Proyecto:</label>
-            <textarea id="pfObjGeneral" class="form-input" rows="3" style="font-size: 0.88rem; line-height: 1.45;">${this.escapeHtml(pf.objetivos.general)}</textarea>
-          </div>
-
-          <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label" style="color: #38bdf8; font-weight: 700;">
-              Objetivos Específicos <span style="font-size: 0.72rem; color: var(--text-dim); font-weight: normal;">— 1 objetivo por línea</span>:
-            </label>
-            <textarea id="pfObjEspecificos" class="form-input" rows="6" style="font-size: 0.82rem; line-height: 1.45;">${this.escapeHtml(objEspecificos)}</textarea>
-          </div>
+          ${this.renderNavFooter(4, 'Justificación del Proyecto')}
         </div>
 
-
-        <!-- 5. ALCANCE, BENEFICIARIOS E IMPACTOS -->
-        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
-          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
-            <span class="badge cyan">Sección 5</span>
-            <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">🌐 Alcance, Beneficiarios e Impactos</span>
+        <!-- 5. ALCANCE Y OBJETIVOS (PANEL 5) -->
+        <div class="editor-section-panel" id="editorSec_5" data-sec="5" style="${isPanelVisible(5)}; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="badge cyan">Sección 5</span>
+              <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">🎯 Objetivos, Alcance e Impactos (2.3 - 2.5)</span>
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Metas Formativas y Beneficiarios</span>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1rem;">
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
             <div>
-              <label class="form-label" style="font-weight: 600;">Beneficiarios Directos:</label>
-              <textarea id="pfBenDirectos" class="form-input" rows="3" style="font-size: 0.82rem;">${this.escapeHtml(pf.alcance.beneficiarios_directos)}</textarea>
+              <label class="form-label" style="font-weight: 700; color: #38bdf8;">Objetivo General (2.3):</label>
+              <textarea id="pfObjGeneral" class="form-input" rows="3" style="line-height: 1.45;">${this.escapeHtml(pf.objetivos?.general)}</textarea>
             </div>
-            <div>
-              <label class="form-label" style="font-weight: 600;">Beneficiarios Indirectos:</label>
-              <textarea id="pfBenIndirectos" class="form-input" rows="3" style="font-size: 0.82rem;">${this.escapeHtml(pf.alcance.beneficiarios_indirectos)}</textarea>
-            </div>
-          </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
             <div>
-              <label class="form-label" style="font-size: 0.8rem;">Impacto Social:</label>
-              <textarea id="pfImpSocial" class="form-input" rows="2" style="font-size: 0.82rem;">${this.escapeHtml(pf.alcance.impacto_social)}</textarea>
+              <label class="form-label" style="font-weight: 700; color: #a855f7;">Objetivos Específicos (2.4 - 1 por línea):</label>
+              <textarea id="pfObjEspecificos" class="form-input" rows="5" style="line-height: 1.45;">${(pf.objetivos?.especificos || []).map(o => this.escapeHtml(o)).join('\n')}</textarea>
             </div>
-            <div>
-              <label class="form-label" style="font-size: 0.8rem;">Impacto Económico:</label>
-              <textarea id="pfImpEconomico" class="form-input" rows="2" style="font-size: 0.82rem;">${this.escapeHtml(pf.alcance.impacto_economico)}</textarea>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+              <div>
+                <label class="form-label">Beneficiarios Directos:</label>
+                <textarea id="pfBenDirectos" class="form-input" rows="2">${this.escapeHtml(alc.beneficiarios_directos)}</textarea>
+              </div>
+              <div>
+                <label class="form-label">Beneficiarios Indirectos:</label>
+                <textarea id="pfBenIndirectos" class="form-input" rows="2">${this.escapeHtml(alc.beneficiarios_indirectos)}</textarea>
+              </div>
             </div>
-            <div>
-              <label class="form-label" style="font-size: 0.8rem;">Impacto Ambiental:</label>
-              <textarea id="pfImpAmbiental" class="form-input" rows="2" style="font-size: 0.82rem;">${this.escapeHtml(pf.alcance.impacto_ambiental)}</textarea>
-            </div>
-            <div>
-              <label class="form-label" style="font-size: 0.8rem;">Impacto Tecnológico:</label>
-              <textarea id="pfImpTecnologico" class="form-input" rows="2" style="font-size: 0.82rem;">${this.escapeHtml(pf.alcance.impacto_tecnologico)}</textarea>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+              <div>
+                <label class="form-label">Impacto Social:</label>
+                <textarea id="pfImpSocial" class="form-input" rows="2">${this.escapeHtml(alc.impacto_social)}</textarea>
+              </div>
+              <div>
+                <label class="form-label">Impacto Económico:</label>
+                <textarea id="pfImpEconomico" class="form-input" rows="2">${this.escapeHtml(alc.impacto_economico)}</textarea>
+              </div>
+              <div>
+                <label class="form-label">Impacto Ambiental:</label>
+                <textarea id="pfImpAmbiental" class="form-input" rows="2">${this.escapeHtml(alc.impacto_ambiental)}</textarea>
+              </div>
+              <div>
+                <label class="form-label">Impacto Tecnológico:</label>
+                <textarea id="pfImpTecnologico" class="form-input" rows="2">${this.escapeHtml(alc.impacto_tecnologico)}</textarea>
+              </div>
             </div>
           </div>
+          ${this.renderNavFooter(5, 'Alcance y Objetivos')}
         </div>
 
-
-        <!-- 6. RESTRICCIONES O RIESGOS ASOCIADOS Y ALTERNATIVAS DE SOLUCIÓN (2.5.3) -->
-        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <!-- 6. RESTRICCIONES O RIESGOS ASOCIADOS (PANEL 6) -->
+        <div class="editor-section-panel" id="editorSec_6" data-sec="6" style="${isPanelVisible(6)}; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
               <span class="badge amber">Sección 6 (2.5.3)</span>
               <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">⚠️ Restricciones o Riesgos Asociados y Alternativas de Solución</span>
             </div>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">Formato Institucional SENA GFPI-F-016</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Mitigación de Contingencias</span>
           </div>
 
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
-            Identificación de restricciones tecnológicas, de infraestructura o de vinculación con el sector productivo, junto con sus estrategias formativas de mitigación.
-          </p>
-
-          <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-            ${riesgos.map((r, idx) => `
-              <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 8px; padding: 1.25rem;">
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
-                  <span class="badge amber" style="font-size: 0.75rem;">Riesgo ${idx + 1}</span>
-                  <strong style="color: #fbbf24; font-size: 0.95rem;">Restricción o Riesgo #${idx + 1}</strong>
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            ${(pf.restricciones_riesgos || []).map((r, idx) => `
+              <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 1.15rem;">
+                <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.65rem;">
+                  <span class="badge amber" style="font-weight: 800;">Riesgo ${idx + 1}</span>
+                  <input type="text" id="pfRiesgoNombre_${idx}" class="form-input" style="font-weight: 700; color: #fbbf24; font-size: 0.92rem;" value="${this.escapeHtml(r.nombre)}">
                 </div>
-
-                <div class="form-group">
-                  <label class="form-label" style="font-size: 0.8rem; color: #fbbf24; font-weight: 700;">Nombre / Identificación del Riesgo:</label>
-                  <input type="text" id="pfRiesgoNombre_${idx}" class="form-input" value="${this.escapeHtml(r.nombre)}">
+                <div style="margin-bottom: 0.65rem;">
+                  <label class="form-label" style="font-size: 0.8rem; color: var(--text-muted);">Descripción del Riesgo:</label>
+                  <textarea id="pfRiesgoDesc_${idx}" class="form-input" rows="3" style="font-size: 0.85rem; line-height: 1.45;">${this.escapeHtml(r.descripcion)}</textarea>
                 </div>
-
-                <div class="form-group">
-                  <label class="form-label" style="font-size: 0.8rem; color: #f87171; font-weight: 700;">Descripción del Riesgo y su Impacto:</label>
-                  <textarea id="pfRiesgoDesc_${idx}" class="form-input" rows="3" style="font-size: 0.82rem; line-height: 1.45;">${this.escapeHtml(r.descripcion)}</textarea>
-                </div>
-
-                <div class="form-group" style="margin-bottom: 0;">
-                  <label class="form-label" style="font-size: 0.8rem; color: #34d399; font-weight: 700;">Alternativa de Solución / Mitigación:</label>
-                  <textarea id="pfRiesgoSol_${idx}" class="form-input" rows="3" style="font-size: 0.82rem; line-height: 1.45;">${this.escapeHtml(r.alternativa_solucion)}</textarea>
+                <div>
+                  <label class="form-label" style="font-size: 0.8rem; color: #34d399; font-weight: 700;">Alternativa de Solución Propuesta:</label>
+                  <textarea id="pfRiesgoSol_${idx}" class="form-input" rows="3" style="font-size: 0.85rem; line-height: 1.45;">${this.escapeHtml(r.alternativa_solucion)}</textarea>
                 </div>
               </div>
             `).join('')}
           </div>
+          ${this.renderNavFooter(6, 'Riesgos y Soluciones')}
         </div>
 
-
-        <!-- 7. PRODUCTOS O RESULTADOS DEL PROYECTO (2.5.4) -->
-        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <!-- 7. PRODUCTOS O RESULTADOS DEL PROYECTO (PANEL 7) -->
+        <div class="editor-section-panel" id="editorSec_7" data-sec="7" style="${isPanelVisible(7)}; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
               <span class="badge purple">Sección 7 (2.5.4)</span>
               <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">📦 Productos o Resultados del Proyecto</span>
             </div>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">Resultados Tangibles y Verificables</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Entregables por Fase Formativa</span>
           </div>
 
-          <div class="form-group">
-            <label class="form-label" style="font-weight: 700; color: #a78bfa;">Descripción General de los Productos:</label>
-            <textarea id="pfProdDescGeneral" class="form-input" rows="3" style="font-size: 0.85rem; line-height: 1.45;">${this.escapeHtml(prodResultados.descripcion_general)}</textarea>
+          <div style="margin-bottom: 1rem;">
+            <label class="form-label" style="font-weight: 700;">Descripción General de los Productos:</label>
+            <textarea id="pfProdDescGeneral" class="form-input" rows="3" style="line-height: 1.45;">${this.escapeHtml(pf.productos_resultados?.descripcion_general)}</textarea>
           </div>
 
-          <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-            ${prodFases.map((f, idx) => `
-              <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 8px; padding: 1.25rem;">
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
-                  <span class="badge purple" style="font-size: 0.75rem;">Fase ${idx + 1}</span>
-                  <input type="text" id="pfProdFaseNombre_${idx}" class="form-input" value="${this.escapeHtml(f.fase)}" style="font-weight: 700; color: #c084fc;">
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            ${(pf.productos_resultados?.fases || []).map((f, idx) => `
+              <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 8px; padding: 1.15rem;">
+                <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.65rem;">
+                  <span class="badge purple" style="font-weight: 800;">Fase ${idx + 1}</span>
+                  <input type="text" id="pfProdFaseNombre_${idx}" class="form-input" style="font-weight: 700; color: #c084fc; font-size: 0.92rem;" value="${this.escapeHtml(f.fase)}">
                 </div>
-
-                <div class="form-group">
-                  <label class="form-label" style="font-size: 0.8rem; color: #38bdf8; font-weight: 700;">Producto Entregable:</label>
-                  <textarea id="pfProdFaseProd_${idx}" class="form-input" rows="3" style="font-size: 0.82rem; line-height: 1.45;">${this.escapeHtml(f.producto)}</textarea>
+                <div style="margin-bottom: 0.65rem;">
+                  <label class="form-label" style="font-size: 0.8rem; color: var(--text-muted);">Producto Entregable:</label>
+                  <textarea id="pfProdFaseProd_${idx}" class="form-input" rows="3" style="font-size: 0.85rem; line-height: 1.45;">${this.escapeHtml(f.producto)}</textarea>
                 </div>
-
-                <div class="form-group" style="margin-bottom: 0;">
+                <div>
                   <label class="form-label" style="font-size: 0.8rem; color: #10b981; font-weight: 700;">Criterio y Mecanismo de Evaluación:</label>
                   <textarea id="pfProdFaseEval_${idx}" class="form-input" rows="3" style="font-size: 0.82rem; line-height: 1.45;">${this.escapeHtml(f.evaluacion)}</textarea>
                 </div>
               </div>
             `).join('')}
           </div>
+          ${this.renderNavFooter(7, 'Productos por Fase')}
         </div>
 
-
-        <!-- 8. INNOVACIÓN / GESTIÓN TECNOLÓGICA (2.6) -->
-        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <!-- 8. INNOVACIÓN / GESTIÓN TECNOLÓGICA (PANEL 8) -->
+        <div class="editor-section-panel" id="editorSec_8" data-sec="8" style="${isPanelVisible(8)}; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
               <span class="badge cyan">Sección 8 (2.6)</span>
@@ -426,86 +635,67 @@ export class ProyectoFormativoView {
             <span style="font-size: 0.75rem; color: var(--text-muted);">5 Indicadores de Vanguardia Técnica</span>
           </div>
 
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
-            Evaluación del impacto del proyecto frente al estado del arte, incorporación de tecnologías de punta, I+D y pertinencia sectorial.
-          </p>
-
           <div style="display: flex; flex-direction: column; gap: 0.85rem;">
-            <!-- Pregunta 1 -->
             <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
               <div style="flex: 1; min-width: 280px;">
                 <strong style="color: #f8fafc; font-size: 0.92rem; display: block; margin-bottom: 0.25rem;">¿El proyecto resuelve una necesidad del sector productivo?</strong>
                 <span style="font-size: 0.78rem; color: var(--text-muted);">Respuesta soportada en la realidad, conocimiento del entorno y estado del arte del sector. Solo tiene dos opciones: Si o No.</span>
               </div>
-              <div>
-                <select id="pfInnoResuelve" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #38bdf8;">
-                  <option value="SI" ${inno.resuelve_necesidad?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
-                  <option value="NO" ${inno.resuelve_necesidad?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
-                </select>
-              </div>
+              <select id="pfInnoResuelve" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #38bdf8;">
+                <option value="SI" ${inno.resuelve_necesidad?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
+                <option value="NO" ${inno.resuelve_necesidad?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
+              </select>
             </div>
 
-            <!-- Pregunta 2 -->
             <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
               <div style="flex: 1; min-width: 280px;">
                 <strong style="color: #f8fafc; font-size: 0.92rem; display: block; margin-bottom: 0.25rem;">¿El proyecto mejora el proceso/producto/servicio existente?</strong>
                 <span style="font-size: 0.78rem; color: var(--text-muted);">Efecto o transformación que causa el producto del proyecto en sentido superación, innovación, productividad. Solo tiene dos opciones: Si o No.</span>
               </div>
-              <div>
-                <select id="pfInnoMejora" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #38bdf8;">
-                  <option value="SI" ${inno.mejora_proceso?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
-                  <option value="NO" ${inno.mejora_proceso?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
-                </select>
-              </div>
+              <select id="pfInnoMejora" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #38bdf8;">
+                <option value="SI" ${inno.mejora_proceso?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
+                <option value="NO" ${inno.mejora_proceso?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
+              </select>
             </div>
 
-            <!-- Pregunta 3 -->
             <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
               <div style="flex: 1; min-width: 280px;">
                 <strong style="color: #f8fafc; font-size: 0.92rem; display: block; margin-bottom: 0.25rem;">¿El proyecto involucra el uso de nuevas técnicas y tecnologías de proceso?</strong>
                 <span style="font-size: 0.78rem; color: var(--text-muted);">La incorporación de tecnologías de punto y vanguardia, que dan cuenta del estado del arte del sector en el desarrollo del proyecto. Solo tiene dos opciones: Si o No.</span>
               </div>
-              <div>
-                <select id="pfInnoNuevas" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #38bdf8;">
-                  <option value="SI" ${inno.nuevas_tecnicas?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
-                  <option value="NO" ${inno.nuevas_tecnicas?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
-                </select>
-              </div>
+              <select id="pfInnoNuevas" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #38bdf8;">
+                <option value="SI" ${inno.nuevas_tecnicas?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
+                <option value="NO" ${inno.nuevas_tecnicas?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
+              </select>
             </div>
 
-            <!-- Pregunta 4 -->
             <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
               <div style="flex: 1; min-width: 280px;">
                 <strong style="color: #f8fafc; font-size: 0.92rem; display: block; margin-bottom: 0.25rem;">¿Los productos finales son susceptibles a protección industrial y/o derechos de autor?</strong>
-                <span style="font-size: 0.78rem; color: var(--text-muted);">El desarrollo del proyecto refleja una producción de I+D (Investigación y Desarrollo) de manera que se registre el producto como una creación propia, una invención o una construcción que modifica el discurso epistémico. Solo tiene dos opciones: Si o No.</span>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">El desarrollo del proyecto refleja una producción de I+D de manera que se registre el producto como una creación propia, invención o construcción que modifica el discurso epistémico. Solo tiene dos opciones: Si o No.</span>
               </div>
-              <div>
-                <select id="pfInnoProteccion" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #38bdf8;">
-                  <option value="SI" ${inno.proteccion_industrial?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
-                  <option value="NO" ${inno.proteccion_industrial?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
-                </select>
-              </div>
+              <select id="pfInnoProteccion" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #38bdf8;">
+                <option value="SI" ${inno.proteccion_industrial?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
+                <option value="NO" ${inno.proteccion_industrial?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
+              </select>
             </div>
 
-            <!-- Pregunta 5 -->
             <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
               <div style="flex: 1; min-width: 280px;">
                 <strong style="color: #f8fafc; font-size: 0.92rem; display: block; margin-bottom: 0.25rem;">¿Los productos obtenidos en el proyecto pueden ser posicionados en el mercado?</strong>
                 <span style="font-size: 0.78rem; color: var(--text-muted);">El producto, la marca, objeto resultantes del proyecto poseen la calidad requerida para competir en el mercado de consumo. Solo tiene dos opciones: Si o No.</span>
               </div>
-              <div>
-                <select id="pfInnoMercado" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #38bdf8;">
-                  <option value="SI" ${inno.posicionamiento_mercado?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
-                  <option value="NO" ${inno.posicionamiento_mercado?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
-                </select>
-              </div>
+              <select id="pfInnoMercado" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #38bdf8;">
+                <option value="SI" ${inno.posicionamiento_mercado?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
+                <option value="NO" ${inno.posicionamiento_mercado?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
+              </select>
             </div>
           </div>
+          ${this.renderNavFooter(8, 'Innovación Tecnológica')}
         </div>
 
-
-        <!-- 9. VALORACIÓN PRODUCTIVA (2.7) -->
-        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <!-- 9. VALORACIÓN PRODUCTIVA (PANEL 9) -->
+        <div class="editor-section-panel" id="editorSec_9" data-sec="9" style="${isPanelVisible(9)}; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
               <span class="badge emerald">Sección 9 (2.7)</span>
@@ -514,45 +704,157 @@ export class ProyectoFormativoView {
             <span style="font-size: 0.75rem; color: var(--text-muted);">Viabilidad Comercial y Emprendimiento</span>
           </div>
 
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
-            Evaluación de las condiciones del proyecto formativo para satisfacer necesidades de clientes potenciales y transformarse en una iniciativa productiva viable.
-          </p>
-
           <div style="display: flex; flex-direction: column; gap: 0.85rem;">
-            <!-- Pregunta 1 -->
             <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
               <div style="flex: 1; min-width: 280px;">
                 <strong style="color: #f8fafc; font-size: 0.92rem; display: block; margin-bottom: 0.25rem;">¿Con el desarrollo del proyecto se puede satisfacer la necesidad de un cliente potencial?</strong>
                 <span style="font-size: 0.78rem; color: var(--text-muted);">Cuando el proyecto tiene efectos colaterales no incluidos en su formulación, generando la viabilidad de afectar a otros clientes y contextos. Solo tiene dos opciones: Si o No.</span>
               </div>
-              <div>
-                <select id="pfValSatisface" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #10b981;">
-                  <option value="SI" ${val.satisface_cliente?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
-                  <option value="NO" ${val.satisface_cliente?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
-                </select>
-              </div>
+              <select id="pfValSatisface" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #10b981;">
+                <option value="SI" ${val.satisface_cliente?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
+                <option value="NO" ${val.satisface_cliente?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
+              </select>
             </div>
 
-            <!-- Pregunta 2 -->
             <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
               <div style="flex: 1; min-width: 280px;">
                 <strong style="color: #f8fafc; font-size: 0.92rem; display: block; margin-bottom: 0.25rem;">¿Viabilidad de proyecto para plan de negocio?</strong>
                 <span style="font-size: 0.78rem; color: var(--text-muted);">Cuando un proyecto formativo tiene condiciones para transformarse en un proyecto productivo, es decir, que abre condiciones para creación de empresa. Solo tiene tres opciones: ALTA, MEDIA o BAJA.</span>
               </div>
-              <div>
-                <select id="pfValViabilidad" class="form-select" style="width: 130px; font-weight: 700; text-align: center; border-color: #10b981; color: #34d399;">
-                  <option value="ALTA" ${val.viabilidad_negocio?.respuesta === 'ALTA' ? 'selected' : ''}>ALTA</option>
-                  <option value="MEDIA" ${val.viabilidad_negocio?.respuesta === 'MEDIA' ? 'selected' : ''}>MEDIA</option>
-                  <option value="BAJA" ${val.viabilidad_negocio?.respuesta === 'BAJA' ? 'selected' : ''}>BAJA</option>
-                </select>
-              </div>
+              <select id="pfValViabilidad" class="form-select" style="width: 130px; font-weight: 700; text-align: center; border-color: #10b981; color: #34d399;">
+                <option value="ALTA" ${val.viabilidad_negocio?.respuesta === 'ALTA' ? 'selected' : ''}>ALTA</option>
+                <option value="MEDIA" ${val.viabilidad_negocio?.respuesta === 'MEDIA' ? 'selected' : ''}>MEDIA</option>
+                <option value="BAJA" ${val.viabilidad_negocio?.respuesta === 'BAJA' ? 'selected' : ''}>BAJA</option>
+              </select>
             </div>
           </div>
+          ${this.renderNavFooter(9, 'Valoración Productiva')}
         </div>
 
+        <!-- 10. PLANEACIÓN DEL PROYECTO (PANEL 10) -->
+        <div class="editor-section-panel" id="editorSec_10" data-sec="10" style="${isPanelVisible(10)}; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; flex-wrap: wrap; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="badge amber">Sección 10 (3.0)</span>
+              <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">🗓️ 3. Planeación del Proyecto (Actividades, Fases, Competencias y Guías)</span>
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">39 Guías Consecutivas — Pipeline Tecnológico</span>
+          </div>
+
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.5;">
+            Configure y personalice las <strong>39 actividades del proyecto formativo</strong> y asocie las competencias técnicas y transversales a cada Fase. Cada actividad alimenta automáticamente el campo <em>"Actividad de proyecto"</em> en las Guías de Aprendizaje relacionadas del Generador SENA.
+          </p>
+
+          <!-- Filtros de Fase -->
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-right: 0.5rem;">Filtrar por Fase:</span>
+            <button type="button" class="btn-action planeacion-filter-btn active" data-phase="ALL" onclick="window.app.proyectoView.filterPlaneacionPhase('ALL')" style="font-size: 0.78rem; padding: 0.35rem 0.85rem; border-radius: 6px; background: rgba(56, 189, 248, 0.25); border: 1px solid #38bdf8; color: #f8fafc; font-weight: 700;">
+              Todas (39)
+            </button>
+            <button type="button" class="btn-action planeacion-filter-btn" data-phase="PLANEAR" onclick="window.app.proyectoView.filterPlaneacionPhase('PLANEAR')" style="font-size: 0.78rem; padding: 0.35rem 0.85rem; border-radius: 6px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); color: #34d399; font-weight: 700;">
+              🟢 PLANEAR (9)
+            </button>
+            <button type="button" class="btn-action planeacion-filter-btn" data-phase="HACER" onclick="window.app.proyectoView.filterPlaneacionPhase('HACER')" style="font-size: 0.78rem; padding: 0.35rem 0.85rem; border-radius: 6px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); color: #38bdf8; font-weight: 700;">
+              🔵 HACER (14)
+            </button>
+            <button type="button" class="btn-action planeacion-filter-btn" data-phase="VERIFICAR" onclick="window.app.proyectoView.filterPlaneacionPhase('VERIFICAR')" style="font-size: 0.78rem; padding: 0.35rem 0.85rem; border-radius: 6px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); color: #fbbf24; font-weight: 700;">
+              🟡 VERIFICAR (12)
+            </button>
+            <button type="button" class="btn-action planeacion-filter-btn" data-phase="ACTUAR" onclick="window.app.proyectoView.filterPlaneacionPhase('ACTUAR')" style="font-size: 0.78rem; padding: 0.35rem 0.85rem; border-radius: 6px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); color: #c084fc; font-weight: 700;">
+              🟣 ACTUAR (4)
+            </button>
+          </div>
+
+          <!-- Listado de las 39 actividades -->
+          <div id="planeacionCardsContainer" style="display: flex; flex-direction: column; gap: 0.85rem;">
+            ${(pf.planeacion_proyecto || PROYECTO_FORMATIVO_DEFAULT.planeacion_proyecto).map((item, idx) => {
+              const faseColors = {
+                PLANEAR: 'background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399',
+                HACER: 'background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #60a5fa',
+                VERIFICAR: 'background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #fbbf24',
+                ACTUAR: 'background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; color: #c084fc'
+              };
+              const phaseBadge = faseColors[item.fase] || faseColors.PLANEAR;
+
+              return `
+                <div class="planeacion-card" data-phase="${item.fase}" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 8px; padding: 1.15rem; transition: border-color 0.2s;">
+                  
+                  <!-- Top bar -->
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                      <span style="font-weight: 800; font-size: 0.82rem; padding: 2px 8px; border-radius: 4px; background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #38bdf8;">
+                        ${this.escapeHtml(item.guia_label || item.guia_id)} (${item.guia_id})
+                      </span>
+                      <span style="font-weight: 700; font-size: 0.75rem; padding: 2px 7px; border-radius: 4px; ${phaseBadge};">
+                        ${this.escapeHtml(item.fase)}
+                      </span>
+                      <span style="font-size: 0.75rem; color: var(--text-muted); background: rgba(255, 255, 255, 0.05); padding: 2px 6px; border-radius: 4px;">
+                        Trimestre ${this.escapeHtml(item.trimestre)}
+                      </span>
+                    </div>
+                    <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">⏱️ 48 Horas (1 Crédito)</span>
+                  </div>
+
+                  <!-- Selectores de Competencias y RAPs (2 columnas editables) -->
+                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0.85rem; margin-bottom: 0.85rem;">
+                    
+                    <!-- 3.3 Componente Específico (Técnico 3D) -->
+                    <div style="background: rgba(14, 165, 233, 0.06); border: 1px solid rgba(14, 165, 233, 0.25); border-radius: 6px; padding: 0.75rem 0.85rem;">
+                      <label class="form-label" style="font-size: 0.78rem; color: #38bdf8; font-weight: 700; margin-bottom: 0.25rem;">
+                        🎯 3.3 Competencia Técnica (Específica):
+                      </label>
+                      <select id="pfPlanCompTec_${idx}" class="form-select" style="font-size: 0.78rem; margin-bottom: 0.4rem; border-color: rgba(56, 189, 248, 0.35); background: rgba(15, 23, 42, 0.85); color: #f8fafc; font-weight: 600;">
+                        ${tecnicas.map(c => {
+                          const isSel = item.competencia_tecnica && (item.competencia_tecnica.includes(c.codigo) || item.competencia_tecnica.startsWith(c.codigo));
+                          return `<option value="${c.codigo} ${c.nombre}" ${isSel ? 'selected' : ''}>${c.codigo} - ${c.nombre.substring(0, 52)}...</option>`;
+                        }).join('')}
+                      </select>
+                      <label class="form-label" style="font-size: 0.72rem; color: #cbd5e1; font-weight: 600; margin-bottom: 0.2rem;">
+                        Denominación RAP Técnico:
+                      </label>
+                      <input type="text" id="pfPlanRapTec_${idx}" class="form-input" style="font-size: 0.78rem; padding: 4px 8px; border-color: rgba(56, 189, 248, 0.25);" value="${this.escapeHtml(item.rap_tecnico)}">
+                    </div>
+
+                    <!-- 3.4 Componente Básico (Transversal / Clave) -->
+                    <div style="background: rgba(168, 85, 247, 0.06); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 6px; padding: 0.75rem 0.85rem;">
+                      <label class="form-label" style="font-size: 0.78rem; color: #c084fc; font-weight: 700; margin-bottom: 0.25rem;">
+                        🌱 3.4 Competencia Transversal (Básica / Clave):
+                      </label>
+                      <select id="pfPlanCompTrans_${idx}" class="form-select" style="font-size: 0.78rem; margin-bottom: 0.4rem; border-color: rgba(168, 85, 247, 0.35); background: rgba(15, 23, 42, 0.85); color: #f8fafc; font-weight: 600;">
+                        <option value="Trabajo Técnico Específico" ${(!item.competencia_transversal || item.competencia_transversal.includes('Específico')) ? 'selected' : ''}>Trabajo Técnico Específico</option>
+                        ${transversales.map(c => {
+                          const isSel = item.competencia_transversal && (item.competencia_transversal.includes(c.codigo) || item.competencia_transversal.startsWith(c.codigo));
+                          return `<option value="${c.codigo} ${c.nombre}" ${isSel ? 'selected' : ''}>${c.codigo} - ${c.nombre.substring(0, 52)}...</option>`;
+                        }).join('')}
+                      </select>
+                      <label class="form-label" style="font-size: 0.72rem; color: #cbd5e1; font-weight: 600; margin-bottom: 0.2rem;">
+                        Denominación RAP Transversal:
+                      </label>
+                      <input type="text" id="pfPlanRapTrans_${idx}" class="form-input" style="font-size: 0.78rem; padding: 4px 8px; border-color: rgba(168, 85, 247, 0.25);" value="${this.escapeHtml(item.rap_transversal || '')}">
+                    </div>
+
+                  </div>
+
+                  <!-- 3.2 Actividad del Proyecto -->
+                  <div>
+                    <label class="form-label" style="font-size: 0.8rem; color: #f8fafc; font-weight: 700; margin-bottom: 0.25rem;">
+                      3.2 Actividad del Proyecto (Verbo en infinitivo - Objeto - Condición):
+                    </label>
+                    <textarea id="pfPlanAct_${idx}" class="form-input" rows="2" style="font-size: 0.86rem; line-height: 1.45; font-weight: 500; border-color: rgba(56, 189, 248, 0.3);">${this.escapeHtml(item.actividad_proyecto)}</textarea>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">
+                      🔗 Enlaza y actualiza automáticamente la Guía de Aprendizaje ${item.guia_label}.
+                    </span>
+                  </div>
+
+                </div>
+              `;
+            }).join('')}
+          </div>
+          ${this.renderNavFooter(10, 'Planeación del Proyecto')}
+        </div>
 
         <!-- BOTONES DE ACCIÓN INFERIORES -->
-        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem 1.5rem; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;">
           <div style="display: flex; gap: 0.85rem; align-items: center; flex-wrap: wrap;">
             <button type="submit" class="btn-action primary" style="background: linear-gradient(135deg, #10b981, #059669); font-weight: 700; padding: 0.7rem 1.5rem; font-size: 0.95rem;">
               💾 Guardar Cambios en el Proyecto
@@ -717,13 +1019,30 @@ export class ProyectoFormativoView {
       pf.valoracion_productiva.viabilidad_negocio.respuesta = elValVia.value;
     }
 
+    // 10. Planeación del Proyecto (39 actividades con competencias y RAPs asociados)
+    if (!pf.planeacion_proyecto) {
+      pf.planeacion_proyecto = JSON.parse(JSON.stringify(PROYECTO_FORMATIVO_DEFAULT.planeacion_proyecto));
+    }
+    pf.planeacion_proyecto.forEach((p, idx) => {
+      const elAct = document.getElementById(`pfPlanAct_${idx}`);
+      const elCompTec = document.getElementById(`pfPlanCompTec_${idx}`);
+      const elRapTec = document.getElementById(`pfPlanRapTec_${idx}`);
+      const elCompTrans = document.getElementById(`pfPlanCompTrans_${idx}`);
+      const elRapTrans = document.getElementById(`pfPlanRapTrans_${idx}`);
+
+      if (elAct) p.actividad_proyecto = elAct.value.trim();
+      if (elCompTec) p.competencia_tecnica = elCompTec.value.trim();
+      if (elRapTec) p.rap_tecnico = elRapTec.value.trim();
+      if (elCompTrans) p.competencia_transversal = elCompTrans.value.trim();
+      if (elRapTrans) p.rap_transversal = elRapTrans.value.trim();
+    });
+
     saveProyectoFormativo(pf);
 
     if (window.app && typeof window.app.showToast === 'function') {
       window.app.showToast('✅ Proyecto Formativo guardado y sincronizado con las Guías de Aprendizaje.', 'success');
     }
 
-    // Si la vista oficial estaba abierta o para actualizar el render
     if (this.currentMode === 'preview') {
       this.render();
     }
@@ -741,7 +1060,6 @@ export class ProyectoFormativoView {
   }
 
   printPDF() {
-    // Si estamos en modo edición, cambiamos temporalmente a preview y llamamos a imprimir
     if (this.currentMode !== 'preview') {
       this.setMode('preview');
       setTimeout(() => {
@@ -753,86 +1071,93 @@ export class ProyectoFormativoView {
   }
 
   generateOfficialHTML(pf) {
-    const mp1 = pf.macroproyectos[0] || {};
-    const mp2 = pf.macroproyectos[1] || {};
-    const mp3 = pf.macroproyectos[2] || {};
-
-    const instructor = localStorage.getItem('sena_instructor_disenador') || 'Equipo de Desarrollo Curricular 3D & Nuevas Tecnologías';
-    const centro = pf.info_basica.centro || 'Centro Tecnológico del Mobiliario';
-    const regional = pf.info_basica.regional || 'ANTIOQUIA - ITAGÜÍ';
+    const info = pf.info_basica || {};
+    const mp1 = (pf.macroproyectos && pf.macroproyectos[0]) || {};
+    const mp2 = (pf.macroproyectos && pf.macroproyectos[1]) || {};
+    const mp3 = (pf.macroproyectos && pf.macroproyectos[2]) || {};
 
     return `
-      <div class="sena-document" id="senaDocumentContent" style="padding: 2.5cm 2cm; background: #ffffff; color: #111827; font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif; font-size: 11pt; line-height: 1.5;">
+      <div class="sena-document" style="font-family: Arial, Helvetica, sans-serif; font-size: 9pt; line-height: 1.4; color: #000000; padding: 2.5rem 3rem;">
         
-        <!-- Encabezado Institucional SENA Oficial -->
-        <table class="sena-header-table" style="width: 100%; border-collapse: collapse; margin-bottom: 2rem; border: 1.5px solid #00324D;">
+        <!-- ENCABEZADO INSTITUCIONAL SENA (GFPI-F-016) -->
+        <table class="sena-table" style="width: 100%; border-collapse: collapse; margin-bottom: 1.25rem;">
           <tr>
-            <td rowspan="2" class="sena-logo-box" style="width: 120px; text-align: center; font-weight: 800; color: #39A900; font-size: 16pt; background-color: #f8fafc; border: 1px solid #00324D; padding: 8px 12px; vertical-align: middle;">
-              <div style="font-size: 20pt; font-weight: 900; color: #39A900; letter-spacing: -1px; line-height: 1;">SENA</div>
-              <div style="font-size: 6.5pt; color: #00324D; font-weight: bold; margin-top: 4px;">SISTEMA INTEGRADO DE GESTIÓN</div>
+            <td style="width: 20%; text-align: center; border: 1.5px solid #000; padding: 8px; vertical-align: middle;">
+              <span style="font-size: 20pt; font-weight: 900; color: #39A900; letter-spacing: -0.05em; display: block;">SENA</span>
+              <span style="font-size: 6.5pt; font-weight: bold; color: #475569; display: block; text-transform: uppercase;">Sistema Integrado de Gestión</span>
             </td>
-            <td class="sena-doc-title" style="text-align: center; font-size: 13pt; font-weight: bold; color: #00324D; text-transform: uppercase; border: 1px solid #00324D; padding: 8px 12px; vertical-align: middle;">
-              SERVICIO NACIONAL DE APRENDIZAJE SENA<br>
-              <span style="font-size: 9.5pt; font-weight: 600; color: #00324D;">SISTEMA INTEGRADO DE GESTIÓN</span><br>
-              <span style="font-size: 8.5pt; font-weight: normal; color: #475569;">Procedimiento Ejecución de la Formación Profesional Integral</span><br>
-              <strong style="font-size: 12pt; color: #00324D;">PROYECTO FORMATIVO</strong>
+            <td style="width: 55%; text-align: center; border: 1.5px solid #000; padding: 6px 12px; vertical-align: middle;">
+              <strong style="font-size: 9.5pt; display: block; color: #00324D;">SERVICIO NACIONAL DE APRENDIZAJE SENA</strong>
+              <strong style="font-size: 8.5pt; display: block;">SISTEMA INTEGRADO DE GESTIÓN</strong>
+              <span style="font-size: 8pt; display: block; color: #475569;">Procedimiento Ejecución de la Formación Profesional Integral</span>
+              <strong style="font-size: 11pt; color: #00324D; display: block; margin-top: 3px;">PROYECTO FORMATIVO</strong>
             </td>
-            <td class="sena-version-box" style="width: 130px; font-size: 8pt; color: #4b5563; border: 1px solid #00324D; padding: 8px 12px; vertical-align: middle;">
-              <strong>Código:</strong> ${pf.codigo_formato || 'GFPI-F-016'}<br>
+            <td style="width: 25%; font-size: 7.5pt; border: 1.5px solid #000; padding: 6px 8px; vertical-align: middle; line-height: 1.35;">
+              <strong>Código:</strong> GFPI-F-016<br>
               <strong>Versión:</strong> ${pf.version || '03'}<br>
               <strong>Estado:</strong> Aprobado
             </td>
           </tr>
           <tr>
-            <td colspan="2" style="font-size: 8.5pt; background: #f8fafc; border: 1px solid #00324D; padding: 6px 12px;">
-              <strong>Centro:</strong> ${centro} | <strong>Regional:</strong> ${regional}
+            <td colspan="3" style="border: 1.5px solid #000; border-top: none; padding: 6px 10px; font-size: 8pt; background-color: #f8fafc;">
+              <strong>Centro:</strong> ${this.escapeHtml(info.centro)} &nbsp;|&nbsp; <strong>Regional:</strong> ${this.escapeHtml(info.regional)}
             </td>
           </tr>
         </table>
 
         <!-- 1. INFORMACIÓN BÁSICA DEL PROYECTO -->
-        <div class="sena-section-title" style="color: #00324D; font-size: 12pt; font-weight: bold; border-bottom: 2px solid #39A900; padding-bottom: 4px; margin-top: 1.75rem; margin-bottom: 0.85rem; text-transform: uppercase;">
+        <div class="sena-section-title" style="background-color: #00324D; color: #ffffff; font-weight: bold; padding: 5px 8px; font-size: 9pt; margin-top: 1rem; margin-bottom: 0.5rem; text-transform: uppercase;">
           1. INFORMACIÓN BÁSICA DEL PROYECTO
         </div>
-        <table class="sena-table" style="width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 9.5pt;">
+
+        <table class="sena-table" style="width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 8.5pt;">
           <tr>
-            <td style="width: 25%; font-weight: bold; border: 1px solid #cbd5e1; padding: 7px 10px;">1.1 Centro de Formación:</td>
-            <td style="width: 45%; border: 1px solid #cbd5e1; padding: 7px 10px;">${centro}</td>
-            <td style="width: 15%; font-weight: bold; border: 1px solid #cbd5e1; padding: 7px 10px;">1.2 Regional:</td>
-            <td style="width: 15%; border: 1px solid #cbd5e1; padding: 7px 10px;">${regional}</td>
+            <td style="width: 25%; font-weight: bold; border: 1px solid #cbd5e1; padding: 6px 10px; background: #f8fafc;">1.1 Centro de Formación:</td>
+            <td style="width: 45%; border: 1px solid #cbd5e1; padding: 6px 10px;">${this.escapeHtml(info.centro)}</td>
+            <td style="width: 12%; font-weight: bold; border: 1px solid #cbd5e1; padding: 6px 10px; background: #f8fafc;">1.2 Regional:</td>
+            <td style="width: 18%; border: 1px solid #cbd5e1; padding: 6px 10px;">${this.escapeHtml(info.regional)}</td>
           </tr>
           <tr>
-            <td style="font-weight: bold; border: 1px solid #cbd5e1; padding: 7px 10px;">1.3 Formador / Diseñador Curricular:</td>
-            <td colspan="3" style="border: 1px solid #cbd5e1; padding: 7px 10px;"><strong>${instructor}</strong></td>
+            <td style="font-weight: bold; border: 1px solid #cbd5e1; padding: 6px 10px; background: #f8fafc;">1.3 Nombre del Proyecto:</td>
+            <td colspan="3" style="border: 1px solid #cbd5e1; padding: 6px 10px; font-weight: bold; color: #00324D;">
+              ${this.escapeHtml(info.nombre_proyecto)}
+            </td>
           </tr>
           <tr>
-            <td style="font-weight: bold; border: 1px solid #cbd5e1; padding: 7px 10px;">1.4 Nombre del Proyecto:</td>
-            <td colspan="3" style="border: 1px solid #cbd5e1; padding: 7px 10px; font-weight: bold; color: #00324D;">${this.escapeHtml(pf.info_basica.nombre_proyecto)}</td>
+            <td style="font-weight: bold; border: 1px solid #cbd5e1; padding: 6px 10px; background: #f8fafc;">1.4 Programa de Formación:</td>
+            <td style="border: 1px solid #cbd5e1; padding: 6px 10px; font-weight: bold;">
+              ${this.escapeHtml(info.programa)}
+            </td>
+            <td style="font-weight: bold; border: 1px solid #cbd5e1; padding: 6px 10px; background: #f8fafc;">1.5 Código:</td>
+            <td style="border: 1px solid #cbd5e1; padding: 6px 10px;">${this.escapeHtml(info.codigo_programa || '522301')}</td>
           </tr>
           <tr>
-            <td style="font-weight: bold; border: 1px solid #cbd5e1; padding: 7px 10px;">1.5 Programa de Formación:</td>
-            <td style="border: 1px solid #cbd5e1; padding: 7px 10px;"><strong>${this.escapeHtml(pf.info_basica.programa)}</strong> (Código: ${pf.info_basica.codigo_programa || '522301'})</td>
-            <td style="font-weight: bold; border: 1px solid #cbd5e1; padding: 7px 10px;">1.6 Tiempo Estimado:</td>
-            <td style="border: 1px solid #cbd5e1; padding: 7px 10px;"><strong>${pf.info_basica.tiempo_ejecucion_horas || 3120} Horas</strong> (${pf.info_basica.creditos_totales || 65} Créditos)</td>
+            <td style="font-weight: bold; border: 1px solid #cbd5e1; padding: 6px 10px; background: #f8fafc;">1.6 Tiempo Estimado:</td>
+            <td style="border: 1px solid #cbd5e1; padding: 6px 10px;">
+              ${info.tiempo_ejecucion_horas || 3120} Horas (${info.creditos_totales || 65} Créditos)
+            </td>
+            <td style="font-weight: bold; border: 1px solid #cbd5e1; padding: 6px 10px; background: #f8fafc;">1.7 Código Pry:</td>
+            <td style="border: 1px solid #cbd5e1; padding: 6px 10px;">${this.escapeHtml(info.codigo_proyecto)}</td>
           </tr>
           <tr>
-            <td style="font-weight: bold; border: 1px solid #cbd5e1; padding: 7px 10px;">1.7 Palabras Claves:</td>
-            <td colspan="3" style="border: 1px solid #cbd5e1; padding: 7px 10px; font-size: 8.5pt; color: #475569;">${this.escapeHtml(pf.info_basica.palabras_clave)}</td>
+            <td style="font-weight: bold; border: 1px solid #cbd5e1; padding: 6px 10px; background: #f8fafc;">1.8 Palabras Claves:</td>
+            <td colspan="3" style="border: 1px solid #cbd5e1; padding: 6px 10px; font-size: 8pt; color: #334155;">
+              ${this.escapeHtml(info.palabras_clave)}
+            </td>
           </tr>
         </table>
 
-        <!-- 2. ESTRUCTURA DEL PROYECTO -->
-        <div class="sena-section-title" style="color: #00324D; font-size: 12pt; font-weight: bold; border-bottom: 2px solid #39A900; padding-bottom: 4px; margin-top: 1.75rem; margin-bottom: 0.85rem; text-transform: uppercase;">
-          2. ESTRUCTURA Y MACROPROYECTOS FORMATIVOS
+        <!-- 2. ESTRUCTURA Y FORMULACIÓN DEL PROYECTO -->
+        <div class="sena-section-title" style="background-color: #00324D; color: #ffffff; font-weight: bold; padding: 5px 8px; font-size: 9pt; margin-top: 1.25rem; margin-bottom: 0.5rem; text-transform: uppercase;">
+          2. ESTRUCTURA DEL PROYECTO (MACROPROYECTOS Y PRODUCTOS TÉCNICOS)
         </div>
 
-        <!-- Tabla de los 3 Macroproyectos -->
-        <table class="sena-table" style="width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 9.5pt;">
+        <table class="sena-table" style="width: 100%; border-collapse: collapse; margin-bottom: 1.25rem; font-size: 8.5pt;">
           <thead>
-            <tr>
-              <th style="background-color: #00324D; color: #ffffff; font-weight: bold; padding: 8px 10px; border: 1px solid #00324D; width: 28%;">Macroproyecto / Enfoque</th>
-              <th style="background-color: #00324D; color: #ffffff; font-weight: bold; padding: 8px 10px; border: 1px solid #00324D; width: 14%;">Alcance / Guías</th>
-              <th style="background-color: #00324D; color: #ffffff; font-weight: bold; padding: 8px 10px; border: 1px solid #00324D;">Productos Técnicos y Entregables Verificables</th>
+            <tr style="background: #e2e8f0;">
+              <th style="width: 25%; border: 1px solid #cbd5e1; padding: 6px 10px; text-align: left;">Macroproyecto Nuclear</th>
+              <th style="width: 15%; border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center;">Rango de Guías</th>
+              <th style="width: 60%; border: 1px solid #cbd5e1; padding: 6px 10px; text-align: left;">Entregables Técnicos Clave</th>
             </tr>
           </thead>
           <tbody>
@@ -842,7 +1167,7 @@ export class ProyectoFormativoView {
                 <span style="font-size: 8.5pt; color: #475569;">${this.escapeHtml(mp1.subtitulo || '')}</span>
               </td>
               <td style="border: 1px solid #cbd5e1; padding: 8px 10px; vertical-align: top; text-align: center;">
-                <span class="sena-badge" style="background-color: #e0f2fe; color: #00324D; font-size: 8pt; font-weight: bold; padding: 2px 6px; border-radius: 4px;">${mp1.guias_rango || 'GUÍA 01 - 14'}</span><br>
+                <span class="sena-badge" style="background-color: #e0f2fe; color: #0369a1; font-size: 8pt; font-weight: bold; padding: 2px 6px; border-radius: 4px;">${mp1.guias_rango || 'GUÍA 01 - 14'}</span><br>
                 <span style="font-size: 8pt; color: #64748b;">${mp1.horas || 672} Horas</span>
               </td>
               <td style="border: 1px solid #cbd5e1; padding: 8px 10px; vertical-align: top; font-size: 8.5pt;">
@@ -966,7 +1291,7 @@ export class ProyectoFormativoView {
           </tr>
         </table>
 
-        <!-- 2.5.3 Restricciones o riesgos asociados y alternativas de solución -->
+        <!-- 2.5.3 Restricciones o riesgos asociados -->
         <div class="sena-sub-title" style="color: #0f172a; font-size: 10.5pt; font-weight: bold; margin-top: 1.25rem; margin-bottom: 0.4rem;">
           2.5.3 Restricciones o riesgos asociados y alternativas de solución:
         </div>
@@ -1084,7 +1409,7 @@ export class ProyectoFormativoView {
         <div class="sena-sub-title" style="color: #0f172a; font-size: 10.5pt; font-weight: bold; margin-top: 1.25rem; margin-bottom: 0.4rem;">
           2.7 Valoración Productiva
         </div>
-        <table class="sena-table" style="width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 8.5pt;">
+        <table class="sena-table" style="width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 8.5pt;">
           <thead>
             <tr style="background: #e2e8f0;">
               <th style="width: 82%; border: 1px solid #cbd5e1; padding: 6px 10px; text-align: left;">Criterio / Pregunta Orientadora</th>
@@ -1110,6 +1435,128 @@ export class ProyectoFormativoView {
                 ${pf.valoracion_productiva?.viabilidad_negocio?.respuesta || 'ALTA'}
               </td>
             </tr>
+          </tbody>
+        </table>
+
+        <!-- 3.0 RESUMEN DE COMPETENCIAS LABORALES ASOCIADAS POR FASE DEL PROYECTO -->
+        <div class="sena-sub-title" style="color: #0f172a; font-size: 10.5pt; font-weight: bold; margin-top: 1.5rem; margin-bottom: 0.4rem;">
+          3.0 MATRIZ DE COMPETENCIAS LABORALES ASOCIADAS POR FASE DEL PROYECTO (MALLA CURRICULAR)
+        </div>
+        <p style="text-align: justify; margin-bottom: 0.65rem; font-size: 8pt; color: #475569;">
+          Estructura curricular de competencias laborales articuladas con las fases del ciclo PHVA y el plan de formación tecnológico.
+        </p>
+        <table class="sena-table" style="width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 8pt;">
+          <thead>
+            <tr style="background: #e2e8f0; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+              <th style="width: 14%; border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-weight: bold; color: #00324D;">Fase del Proyecto</th>
+              <th style="width: 38%; border: 1px solid #cbd5e1; padding: 6px; text-align: left; font-weight: bold; color: #00324D;">3.3 Competencias Componente Específico (Técnicas 3D)</th>
+              <th style="width: 38%; border: 1px solid #cbd5e1; padding: 6px; text-align: left; font-weight: bold; color: #00324D;">3.4 Competencias Componente Básico (Transversales y Claves)</th>
+              <th style="width: 10%; border: 1px solid #cbd5e1; padding: 6px; text-align: center; font-weight: bold; color: #00324D;">Horas Fase</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: top; font-weight: bold; background: #f8fafc; color: #00324D;">
+                FASE 1 (PLANEAR)<br><span style="font-size: 7pt; font-weight: normal; color: #64748b;">Trimestre I</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; vertical-align: top; font-size: 7.5pt; line-height: 1.35;">
+                <strong>250201022:</strong> Desarrollar storyboard de acuerdo con guion (192 h)<br>
+                <strong>220501083:</strong> Producir componentes de animación / Escultura (384 h)
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; vertical-align: top; font-size: 7.5pt; line-height: 1.35;">
+                <strong>240201530:</strong> Inducción Institucional SENA (48 h)<br>
+                <strong>240201524:</strong> Procesos de comunicación eficaces (48 h)<br>
+                <strong>240201526:</strong> Proyecto de vida y ética profesional (48 h)<br>
+                <strong>240202501:</strong> Idioma Inglés - Nivel 1 (48 h)
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: middle; font-weight: bold;">
+                528 h
+              </td>
+            </tr>
+            <tr style="background: #fafafa;">
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: top; font-weight: bold; background: #f8fafc; color: #00324D;">
+                FASE 2 (HACER)<br><span style="font-size: 7pt; font-weight: normal; color: #64748b;">Trimestres II, III, IV</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; vertical-align: top; font-size: 7.5pt; line-height: 1.35;">
+                <strong>220501083:</strong> Modelado 3D, UVs y texturizado PBR<br>
+                <strong>220101016:</strong> CAD paramétrico, Manufactura aditiva 3D y BIM (288 h)<br>
+                <strong>250201026:</strong> Animar elementos, Rigging y MoCap (192 h)<br>
+                <strong>250201039:</strong> VFX Asistido por IA y difusión generativa (336 h)
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; vertical-align: top; font-size: 7.5pt; line-height: 1.35;">
+                <strong>240201527:</strong> Hábitos saludables y cultura física (48 h)<br>
+                <strong>210201501:</strong> Derechos fundamentales del trabajo (48 h)<br>
+                <strong>240201529:</strong> Emprendimiento y modelo de negocio (48 h)<br>
+                <strong>220601501:</strong> Protección ambiental y SST (48 h)<br>
+                <strong>240202501:</strong> Idioma Inglés - Niveles 2, 3 y 4 (144 h)
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: middle; font-weight: bold;">
+                1.104 h
+              </td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: top; font-weight: bold; background: #f8fafc; color: #00324D;">
+                FASE 3 (VERIFICAR)<br><span style="font-size: 7pt; font-weight: normal; color: #64748b;">Trimestres V, VI</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; vertical-align: top; font-size: 7.5pt; line-height: 1.35;">
+                <strong>250201039:</strong> Composición nodal en ACES, Render y Audio Foley<br>
+                <strong>220501096:</strong> Optimización en tiempo real a 60 FPS y Scripting POO (384 h)
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; vertical-align: top; font-size: 7.5pt; line-height: 1.35;">
+                <strong>220501501:</strong> Tecnologías de la Información y Comunicación TIC (48 h)<br>
+                <strong>240202501:</strong> Idioma Inglés - Niveles 5 y 6 (96 h)
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: middle; font-weight: bold;">
+                768 h
+              </td>
+            </tr>
+            <tr style="background: #fafafa;">
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: top; font-weight: bold; background: #f8fafc; color: #00324D;">
+                FASE 4 (ACTUAR)<br><span style="font-size: 7pt; font-weight: normal; color: #64748b;">Trimestre VII</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; vertical-align: top; font-size: 7.5pt; line-height: 1.35;">
+                <strong>220501096:</strong> Compilar ejecutable multiplataforma, Gemelo Digital y validación final de portafolio
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; vertical-align: top; font-size: 7.5pt; line-height: 1.35;">
+                <strong>240201529:</strong> Pitch comercial y sustentación técnica del portafolio profesional ante comité evaluador
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: middle; font-weight: bold;">
+                384 h
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- 3. PLANEACIÓN DEL PROYECTO (TABLA OFICIAL SENA GFPI-F-016) -->
+        <div class="sena-sub-title" style="color: #0f172a; font-size: 10.5pt; font-weight: bold; margin-top: 1.5rem; margin-bottom: 0.4rem;">
+          3. PLANEACIÓN DEL PROYECTO (39 GUÍAS CONSECUTIVAS — PIPELINE TECNOLÓGICO)
+        </div>
+        <p style="text-align: justify; margin-bottom: 0.75rem; font-size: 8pt; color: #475569;">
+          Secuencia cronológica de ejecución de la formación por fases y guías de aprendizaje consecutivas de 48 horas (1 crédito formativo cada una).
+        </p>
+        <table class="sena-table" style="width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 7.5pt;">
+          <thead>
+            <tr style="background: #e2e8f0; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+              <th colspan="7" style="text-align: center; font-weight: bold; padding: 7px; border: 1px solid #cbd5e1; font-size: 9pt; color: #00324D;">
+                3. PLANEACIÓN DEL PROYECTO
+              </th>
+            </tr>
+            <tr style="background: #f1f5f9; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+              <th rowspan="2" style="width: 10%; border: 1px solid #cbd5e1; padding: 5px; text-align: center; vertical-align: middle; font-weight: bold;">3.1 FASES DEL PROYECTO</th>
+              <th rowspan="2" style="width: 28%; border: 1px solid #cbd5e1; padding: 5px 7px; text-align: left; vertical-align: middle; font-weight: bold;">3.2 ACTIVIDADES DEL PROYECTO:<br><span style="font-size: 6.8pt; font-weight: normal; color: #475569;">Verbo (en infinitivo) - Objeto - Condición</span></th>
+              <th rowspan="2" style="width: 6%; border: 1px solid #cbd5e1; padding: 5px; text-align: center; vertical-align: middle; font-weight: bold;">GUÍA DE APRENDIZAJE</th>
+              <th colspan="2" style="width: 28%; border: 1px solid #cbd5e1; padding: 5px; text-align: center; font-weight: bold;">3.3. RESULTADOS DE APRENDIZAJE COMPONENTE ESPECÍFICO</th>
+              <th colspan="2" style="width: 28%; border: 1px solid #cbd5e1; padding: 5px; text-align: center; font-weight: bold;">3.4. RESULTADOS DE APRENDIZAJE COMPONENTE BÁSICO (TRANSVERSALES Y CLAVES)</th>
+            </tr>
+            <tr style="background: #f8fafc; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+              <th style="width: 14%; border: 1px solid #cbd5e1; padding: 4px; font-size: 7pt; text-align: center;">Código - competencia</th>
+              <th style="width: 14%; border: 1px solid #cbd5e1; padding: 4px; font-size: 7pt; text-align: center;">Denominación</th>
+              <th style="width: 14%; border: 1px solid #cbd5e1; padding: 4px; font-size: 7pt; text-align: center;">Código - competencia</th>
+              <th style="width: 14%; border: 1px solid #cbd5e1; padding: 4px; font-size: 7pt; text-align: center;">Denominación</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${this.renderOfficialPlaneacionRows(pf.planeacion_proyecto || PROYECTO_FORMATIVO_DEFAULT.planeacion_proyecto)}
           </tbody>
         </table>
 

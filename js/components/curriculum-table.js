@@ -1,4 +1,4 @@
-import { RAPS_TECNICOS, RAPS_TRANSVERSALES } from '../data/normas-raps.js';
+import { RAPS_TECNICOS, RAPS_TRANSVERSALES, COMPETENCIAS_MATRIZ } from '../data/normas-raps.js';
 import { CURRICULO_TECNOLOGO } from '../data/curriculo-tecnologo.js';
 import { CURRICULO_MODELADO } from '../data/curriculo-modelado.js';
 import { CURRICULO_ANIMACION } from '../data/curriculo-animacion.js';
@@ -6,7 +6,221 @@ import { CURRICULO_ANIMACION } from '../data/curriculo-animacion.js';
 export class CurriculumTable {
   constructor(containerId) {
     this.container = document.getElementById(containerId);
-    this.filterType = 'all'; // all, tecnico, transversal
+    this.filterType = 'all'; // all, tecnico, transversal (para trimestres)
+    this.competenciaFilter = 'all'; // all, tecnico, transversal (para matriz)
+  }
+
+  escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  filterCompetencias(tipo) {
+    this.competenciaFilter = tipo;
+    const cards = document.querySelectorAll('.comp-card');
+    const btns = document.querySelectorAll('.comp-filter-btn');
+
+    btns.forEach(btn => {
+      const isActive = btn.dataset.filter === tipo;
+      btn.classList.toggle('primary', isActive);
+      if (isActive) {
+        btn.style.background = 'linear-gradient(135deg, #0284c7, #2563eb)';
+        btn.style.borderColor = '#38bdf8';
+        btn.style.color = '#ffffff';
+      } else {
+        btn.style.background = 'rgba(15, 23, 42, 0.6)';
+        btn.style.borderColor = 'rgba(148, 163, 184, 0.2)';
+        btn.style.color = 'var(--text-muted)';
+      }
+    });
+
+    cards.forEach(card => {
+      if (tipo === 'all' || card.dataset.tipo === tipo) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  renderCompetenciasSection(curriculo) {
+    const tecnicas = COMPETENCIAS_MATRIZ.filter(c => c.tipo === 'tecnico');
+    const transversales = COMPETENCIAS_MATRIZ.filter(c => c.tipo === 'transversal');
+
+    // Mapeo dinámico de fases y RAPs para cada competencia
+    const getCompDetails = (comp) => {
+      const fases = new Set();
+      const trimestres = new Set();
+      const raps = [];
+
+      curriculo.trimestres.forEach(t => {
+        t.raps.forEach(r => {
+          const isTec = r.tipo === 'tecnico';
+          const data = isTec ? RAPS_TECNICOS[r.rap_id] : RAPS_TRANSVERSALES[r.rap_id];
+          if (!data) return;
+
+          const matchTec = isTec && (data.norma_codigo === comp.codigo);
+          const matchTrans = !isTec && (
+            (data.competencia && data.competencia.includes(comp.codigo)) ||
+            (data.norma_codigo && data.norma_codigo === comp.codigo) ||
+            (comp.codigo === '220501096' && r.rap_id === 'RAP-31')
+          );
+
+          if (matchTec || matchTrans) {
+            fases.add(t.fase_ciclo || t.fase_proyecto);
+            trimestres.add('T' + t.numero);
+            raps.push({
+              id: r.rap_id,
+              alias: r.alias || (data.id || r.rap_id),
+              nombre: isTec ? data.resultado_aprendizaje : data.nombre,
+              horas: r.horas || data.horas || 48
+            });
+          }
+        });
+      });
+
+      return {
+        fases: Array.from(fases),
+        trimestres: Array.from(trimestres),
+        raps
+      };
+    };
+
+    return `
+      <!-- SECCIÓN 1: MATRIZ DE COMPETENCIAS LABORALES (ORDENADAS EN TÉCNICAS Y TRANSVERSALES) -->
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2.25rem; backdrop-filter: blur(10px);">
+        
+        <!-- Header de Competencias -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.85rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+              <span class="badge cyan" style="font-size: 0.82rem; padding: 3px 9px;">Normas de Competencia Laboral</span>
+              <h2 style="font-size: 1.4rem; font-weight: 800; margin: 0; color: #fff;">🏛️ Matriz de Competencias del Programa</h2>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0.35rem 0 0 0;">
+              Clasificación oficial en <strong>Competencias Específicas (Técnicas 3D)</strong> y <strong>Competencias Básicas (Transversales y Claves)</strong>, con sus RAPs y Fases asociadas.
+            </p>
+          </div>
+
+          <!-- Filtros de Competencias -->
+          <div style="display: flex; gap: 0.35rem; background: rgba(15, 23, 42, 0.6); padding: 0.3rem; border-radius: 8px; border: 1px solid var(--border-color); flex-wrap: wrap;">
+            <button type="button" class="btn-action comp-filter-btn primary" data-filter="all" onclick="window.app.curriculumTable.filterCompetencias('all')" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 700; background: linear-gradient(135deg, #0284c7, #2563eb); border-color: #38bdf8; color: #fff;">
+              Todas (15)
+            </button>
+            <button type="button" class="btn-action comp-filter-btn" data-filter="tecnico" onclick="window.app.curriculumTable.filterCompetencias('tecnico')" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 700; color: #38bdf8; background: rgba(15, 23, 42, 0.6); border-color: rgba(148, 163, 184, 0.2);">
+              🛠️ Técnicas (6)
+            </button>
+            <button type="button" class="btn-action comp-filter-btn" data-filter="transversal" onclick="window.app.curriculumTable.filterCompetencias('transversal')" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 700; color: #c084fc; background: rgba(15, 23, 42, 0.6); border-color: rgba(148, 163, 184, 0.2);">
+              🌱 Transversales (9)
+            </button>
+          </div>
+        </div>
+
+        <!-- Tarjetas de Resumen Numérico -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
+          <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 0.85rem 1rem;">
+            <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Componente Específico (Técnicas 3D)</span>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #38bdf8; margin: 3px 0;">1.776 h <span style="font-size: 0.82rem; font-weight: normal; color: #cbd5e1;">(37 Créditos)</span></div>
+            <span style="font-size: 0.75rem; color: #38bdf8;">6 Competencias Específicas</span>
+          </div>
+
+          <div style="background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 8px; padding: 0.85rem 1rem;">
+            <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Componente Básico (Transversales y Claves)</span>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #c084fc; margin: 3px 0;">672 h <span style="font-size: 0.82rem; font-weight: normal; color: #cbd5e1;">(14 Créditos)</span></div>
+            <span style="font-size: 0.75rem; color: #c084fc;">9 Competencias Institucionales</span>
+          </div>
+
+          <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 0.85rem 1rem;">
+            <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Etapa Práctica (Empresarial)</span>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #34d399; margin: 3px 0;">672 h <span style="font-size: 0.82rem; font-weight: normal; color: #cbd5e1;">(14 Créditos)</span></div>
+            <span style="font-size: 0.75rem; color: #34d399;">Aplicación en el Sector Productivo</span>
+          </div>
+
+          <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 0.85rem 1rem;">
+            <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Total Tecnólogo en Producción 3D</span>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #f8fafc; margin: 3px 0;">3.120 h <span style="font-size: 0.82rem; font-weight: normal; color: #cbd5e1;">(65 Créditos)</span></div>
+            <span style="font-size: 0.75rem; color: #94a3b8;">Código SENA 522301</span>
+          </div>
+        </div>
+
+        <!-- Grid de las 15 Competencias -->
+        <div id="competenciasCardsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 0.85rem;">
+          ${COMPETENCIAS_MATRIZ.map(comp => {
+            const isTec = comp.tipo === 'tecnico';
+            const details = getCompDetails(comp);
+            const badgeColor = isTec ? '#38bdf8' : '#c084fc';
+            const badgeBg = isTec ? 'rgba(56, 189, 248, 0.15)' : 'rgba(168, 85, 247, 0.15)';
+            const badgeBorder = isTec ? 'rgba(56, 189, 248, 0.4)' : 'rgba(168, 85, 247, 0.4)';
+            const typeLabel = isTec ? '🛠️ ESPECÍFICA (3D)' : '🌱 BÁSICA / CLAVE';
+
+            return `
+              <div class="comp-card" data-tipo="${comp.tipo}" style="background: rgba(15, 23, 42, 0.65); border: 1px solid ${badgeBorder}; border-radius: 8px; padding: 1.15rem; transition: transform 0.2s, border-color 0.2s; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                  <!-- Encabezado de la Tarjeta -->
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.65rem; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap;">
+                      <span style="font-weight: 800; font-size: 0.82rem; padding: 2px 8px; border-radius: 4px; background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeBorder}; letter-spacing: 0.02em;">
+                        ${this.escapeHtml(comp.codigo)}
+                      </span>
+                      <span style="font-size: 0.72rem; font-weight: 700; color: ${badgeColor};">
+                        ${typeLabel}
+                      </span>
+                    </div>
+                    <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px;">
+                      ⏱️ ${comp.horas_totales} h (${comp.creditos || 1} cr)
+                    </span>
+                  </div>
+
+                  <!-- Título de la Norma -->
+                  <h4 style="font-size: 0.95rem; font-weight: 700; color: #f8fafc; line-height: 1.35; margin: 0 0 0.5rem 0;">
+                    ${this.escapeHtml(comp.nombre)}
+                  </h4>
+
+                  <!-- Área temática -->
+                  ${comp.area ? `
+                    <div style="font-size: 0.74rem; color: #94a3b8; margin-bottom: 0.65rem;">
+                      <strong style="color: #cbd5e1;">Área:</strong> ${this.escapeHtml(comp.area)}
+                    </div>
+                  ` : ''}
+
+                  <!-- Fases donde se ejecuta -->
+                  <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.75rem;">
+                    <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">Fases:</span>
+                    ${details.fases.length > 0 ? details.fases.map(f => {
+                      const fColor = f.includes('PLANEAR') ? '#34d399' : (f.includes('HACER') ? '#38bdf8' : (f.includes('VERIFICAR') ? '#fbbf24' : '#c084fc'));
+                      return `<span style="font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: ${fColor};">${this.escapeHtml(f)}</span>`;
+                    }).join('') : '<span style="font-size: 0.7rem; color: #64748b;">Malla General</span>'}
+                  </div>
+                </div>
+
+                <!-- Lista de RAPs asociados -->
+                <div style="background: rgba(0, 0, 0, 0.25); border-radius: 6px; padding: 0.6rem 0.75rem; border: 1px solid rgba(255, 255, 255, 0.05); margin-top: 0.5rem;">
+                  <strong style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 0.3rem;">
+                    🎯 RAPs Asociados (${details.raps.length}):
+                  </strong>
+                  ${details.raps.length > 0 ? `
+                    <ul style="margin: 0; padding-left: 1rem; font-size: 0.73rem; color: #cbd5e1; line-height: 1.35;">
+                      ${details.raps.map(r => `
+                        <li style="margin-bottom: 2px;">
+                          <strong style="color: ${badgeColor};">${this.escapeHtml(r.alias || r.id)}:</strong> ${this.escapeHtml(r.nombre.substring(0, 75))}... (${r.horas}h)
+                        </li>
+                      `).join('')}
+                    </ul>
+                  ` : '<span style="font-size: 0.72rem; color: #64748b;">Articulada en transversales formativas.</span>'}
+                </div>
+
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+      </div>
+    `;
   }
 
   render(programType = 'tecnologo') {
@@ -18,10 +232,15 @@ export class CurriculumTable {
 
     this.container.innerHTML = `
       <div style="margin-bottom: 2rem;">
+
+        <!-- SECCIÓN 1: MATRIZ DE COMPETENCIAS LABORALES DEL PROGRAMA -->
+        ${this.renderCompetenciasSection(curriculo)}
+
+        <!-- SECCIÓN 2: MALLA CURRICULAR POR TRIMESTRES Y RAPs -->
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
           <div>
-            <h2 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">Malla Curricular por Trimestres y Resultados de Aprendizaje</h2>
-            <p style="color: var(--text-muted); font-size: 0.95rem;">Distribución exacta de horas, competencias laborales y evidencias de aprendizaje.</p>
+            <h2 style="font-size: 1.45rem; font-weight: 800; letter-spacing: -0.02em; color: #fff;">🗓️ Malla Curricular por Trimestres y Resultados de Aprendizaje</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Distribución secuencial de 7 trimestres lectivos, horas directas y evidencias evaluativas.</p>
           </div>
           <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
             <button class="btn-action primary" onclick="window.app.openCreateRapModal('I')" style="font-size: 0.85rem; padding: 0.45rem 0.9rem; font-weight: 700; background: linear-gradient(135deg, #0284c7, #2563eb);">
@@ -66,7 +285,6 @@ export class CurriculumTable {
                     <h3 style="font-size: 1.25rem; font-weight: 700; margin: 0;">${trim.fase}</h3>
                   </div>
                   <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                    <!-- Botón para Agregar Nuevo RAP a este Trimestre (Señalado en captura) -->
                     <button class="btn-action" onclick="window.app.openCreateRapModal('${trim.numero}')" title="Agregar nuevo RAP al Trimestre ${trim.numero}" style="padding: 0.3rem 0.75rem; font-size: 0.82rem; background: rgba(56, 189, 248, 0.12); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 700; transition: all 0.2s;" onmouseover="this.style.background='rgba(56, 189, 248, 0.25)'" onmouseout="this.style.background='rgba(56, 189, 248, 0.12)'">
                       <span style="font-size: 1rem; line-height: 1;">➕</span>
                       <span>Nuevo RAP</span>
@@ -98,42 +316,43 @@ export class CurriculumTable {
                         const labelId = r.alias || (data.id || r.rap_id);
                         const nombreRap = isTecnico ? data.resultado_aprendizaje : data.nombre;
                         const normaNombre = isTecnico ? `${data.norma_codigo} - ${data.norma_nombre}` : data.competencia;
-                        const evidencia = data.evidencia;
+                        const horas = isTecnico ? data.horas : (r.horas || data.horas);
+                        const evidencia = data.evidencia || 'Evidencia definida en la guía institucional.';
+
+                        const trStyle = isApagado ? 'opacity: 0.45; filter: grayscale(1);' : '';
 
                         return `
-                          <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: all 0.2s; ${isApagado ? 'opacity: 0.45; filter: grayscale(0.7); background: rgba(0,0,0,0.25);' : ''}" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='${isApagado ? 'rgba(0,0,0,0.25)' : 'transparent'}'">
-                            <td style="padding: 1rem 0.5rem; vertical-align: top;">
-                              <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
-                                <span class="badge ${isApagado ? '' : (isTecnico ? 'cyan' : 'purple')}" style="${isApagado ? 'background: rgba(100,116,139,0.3); color: #94a3b8; border-color: #64748b;' : ''}">${labelId}</span>
-                                ${isApagado ? '<span style="font-size: 0.68rem; padding: 1px 5px; border-radius: 4px; background: rgba(234, 179, 8, 0.15); color: var(--accent-amber); border: 1px solid rgba(234, 179, 8, 0.3); font-weight: 700;">🔌 Apagado</span>' : ''}
-                                ${data._custom && !isApagado ? '<span style="font-size: 0.68rem; padding: 1px 5px; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700;">Editado</span>' : ''}
-                              </div>
-                            </td>
-                            <td style="padding: 1rem 0.5rem; vertical-align: top;">
-                              <span style="font-size: 0.75rem; color: ${isApagado ? 'var(--text-dim)' : (isTecnico ? 'var(--accent-cyan)' : 'var(--accent-purple)')}; font-weight: 700;">
-                                ${isTecnico ? 'ESPECÍFICO 3D' : 'TRANSVERSAL'}
+                          <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background-color var(--transition-fast); ${trStyle}">
+                            <td style="padding: 0.75rem 0.5rem; vertical-align: top;">
+                              <span class="badge ${isTecnico ? 'cyan' : 'purple'}" style="font-size: 0.75rem; font-weight: 700;">
+                                ${labelId}
                               </span>
                             </td>
-                            <td style="padding: 1rem 0.5rem; vertical-align: top;">
-                              <div style="font-weight: 600; color: ${isApagado ? 'var(--text-muted)' : 'var(--text-main)'}; margin-bottom: 0.35rem; line-height: 1.4; ${isApagado ? 'text-decoration: line-through;' : ''}">${nombreRap}</div>
-                              <div style="font-size: 0.78rem; color: var(--text-dim);"><strong>Competencia:</strong> ${normaNombre}</div>
+                            <td style="padding: 0.75rem 0.5rem; vertical-align: top;">
+                              <span style="font-size: 0.75rem; text-transform: uppercase; color: ${isTecnico ? 'var(--accent-cyan)' : '#c084fc'}; font-weight: 600;">
+                                ${isTecnico ? '🛠️ Específico 3D' : '🌱 Transversal'}
+                              </span>
                             </td>
-                            <td style="padding: 1rem 0.5rem; vertical-align: top;">
-                              <div style="font-size: 0.85rem; color: var(--text-muted); background: rgba(255,255,255,0.03); padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
-                                📦 ${evidencia}
+                            <td style="padding: 0.75rem 0.5rem; vertical-align: top;">
+                              <div style="font-weight: 600; color: var(--text-main); margin-bottom: 0.25rem; line-height: 1.4;">
+                                ${nombreRap}
+                              </div>
+                              <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem;">
+                                <span style="font-weight: 600; color: #94a3b8;">Competencia:</span>
+                                <span>${normaNombre}</span>
                               </div>
                             </td>
-                            <td style="padding: 1rem 0.5rem; vertical-align: top; text-align: right; font-weight: 700; color: var(--text-main);">
-                              ${isApagado ? `
-                                <span style="text-decoration: line-through; color: var(--text-dim);">${data.horas || r.horas} h</span>
-                                <div style="font-size: 0.7rem; color: var(--accent-amber); font-weight: 600;">(Inactivo)</div>
-                              ` : `
-                                ${data.horas || r.horas} h
-                                <div style="font-size: 0.72rem; color: var(--text-dim); font-weight: normal;">${data.creditos || data.creditos_competencia || r.creditos} Créd.</div>
-                              `}
+                            <td style="padding: 0.75rem 0.5rem; vertical-align: top; color: var(--text-dim); font-size: 0.85rem; line-height: 1.4;">
+                              <div style="display: flex; align-items: flex-start; gap: 0.35rem;">
+                                <span style="color: var(--accent-amber); font-size: 0.75rem; margin-top: 2px;">📦</span>
+                                <span>${evidencia}</span>
+                              </div>
                             </td>
-                            <td style="padding: 1rem 0.5rem; vertical-align: top; text-align: center;">
-                              <button class="btn-action" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; ${isTecnico ? '' : 'border-color: rgba(168, 85, 247, 0.4); color: var(--accent-purple);'}" onclick="window.app.showRapModal('${r.rap_id}')">
+                            <td style="padding: 0.75rem 0.5rem; vertical-align: top; text-align: right; font-weight: 600; color: var(--text-main);">
+                              ${horas} h
+                            </td>
+                            <td style="padding: 0.75rem 0.5rem; vertical-align: top; text-align: center;">
+                              <button class="btn-action" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="window.app.openEditRapModal('${r.rap_id}')">
                                 Ver Detalle
                               </button>
                             </td>

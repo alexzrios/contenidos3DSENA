@@ -202,7 +202,555 @@ export const PROYECTO_FORMATIVO_DEFAULT = {
       "criterio": "Cuando un proyecto formativo tiene condiciones para transformarse en un proyecto productivo, es decir, que abre condiciones para creación de empresa. Solo tiene tres opciones: ALTA, MEDIA o BAJA. Debe elegir una de las tres.",
       "respuesta": "ALTA"
     }
-  }
+  },
+  "planeacion_proyecto": [
+    {
+        "numero": 1,
+        "guia_id": "GA01",
+        "guia_label": "Guía 01",
+        "fase": "PLANEAR",
+        "trimestre": "I",
+        "actividad_proyecto": "Estructurar la biblia de preproducción redactando el guion técnico y clasificando las tomas en rutas de renderizado directo o guía 3D.",
+        "competencia_tecnica": "250201022 Desarrollar storyboard de acuerdo con guion y contenido audiovisual",
+        "rap_tecnico": "RAP 07: Elaborar guiones técnicos y storyboards de preproducción clasificando tomas y rutas de renderizado.",
+        "competencia_transversal": "240201530 Resultado de Aprendizaje de la Inducción",
+        "rap_transversal": "RAP 17: Identificar la dinámica organizacional del SENA y el rol de la formación profesional integral.",
+        "rap_tecnico_id": "RAP-07",
+        "rap_transversal_id": "RAP-17"
+    },
+    {
+        "numero": 2,
+        "guia_id": "GA02",
+        "guia_label": "Guía 02",
+        "fase": "PLANEAR",
+        "trimestre": "I",
+        "actividad_proyecto": "Diseñar viñetas de storyboard definiendo encuadres, ángulos y ritmos cinemáticos para la previsualización del teaser.",
+        "competencia_tecnica": "250201022 Desarrollar storyboard de acuerdo con guion y contenido audiovisual",
+        "rap_tecnico": "RAP 07: Elaborar guiones técnicos y storyboards de preproducción clasificando tomas y rutas de renderizado.",
+        "competencia_transversal": "240201524 Desarrollar procesos de comunicación eficaces y efectivos",
+        "rap_transversal": "RAP 18: Argumentar en forma oral y escrita atendiendo las exigencias de las diversas situaciones comunicativas.",
+        "rap_tecnico_id": "RAP-07",
+        "rap_transversal_id": "RAP-18"
+    },
+    {
+        "numero": 3,
+        "guia_id": "GA03",
+        "guia_label": "Guía 03",
+        "fase": "PLANEAR",
+        "trimestre": "I",
+        "actividad_proyecto": "Explorar el arte conceptual y lenguaje de formas del teaser mediante generación asistida por difusión 2D y armonías cromáticas.",
+        "competencia_tecnica": "250201022 Desarrollar storyboard de acuerdo con guion y contenido audiovisual",
+        "rap_tecnico": "RAP 08: Establecer la guía gráfica y hojas de modelo de elementos conceptuales manteniendo coherencia estilística.",
+        "competencia_transversal": "240201526 Enriquecer su proyecto de vida en un contexto productivo",
+        "rap_transversal": "RAP 19: Contribuir con el fortalecimiento de la cultura de paz a partir de la dignidad humana.",
+        "rap_tecnico_id": "RAP-08",
+        "rap_transversal_id": "RAP-19"
+    },
+    {
+        "numero": 4,
+        "guia_id": "GA04",
+        "guia_label": "Guía 04",
+        "fase": "PLANEAR",
+        "trimestre": "I",
+        "actividad_proyecto": "Dibujar y estandarizar hojas de modelo (Model Sheets) ortográficas consistentes del personaje antropomorfo y props clave.",
+        "competencia_tecnica": "250201022 Desarrollar storyboard de acuerdo con guion y contenido audiovisual",
+        "rap_tecnico": "RAP 08: Establecer la guía gráfica y hojas de modelo de elementos conceptuales manteniendo coherencia estilística.",
+        "competencia_transversal": "240202501 Interactuar en lengua inglesa de forma oral y escrita",
+        "rap_transversal": "RAP 25: Intercambiar opiniones sobre situaciones cotidianas y laborales actuales, pasadas y futuras (Inglés 1).",
+        "rap_tecnico_id": "RAP-08",
+        "rap_transversal_id": "RAP-25"
+    },
+    {
+        "numero": 5,
+        "guia_id": "GA05",
+        "guia_label": "Guía 05",
+        "fase": "PLANEAR",
+        "trimestre": "I",
+        "actividad_proyecto": "Bloquear los volúmenes primarios y proporciones anatómicas bípedas del personaje antropomorfo de forma manual y asistida por IA.",
+        "competencia_tecnica": "220501083 Producir los componentes de la animación de acuerdo con técnicas de modelado",
+        "rap_tecnico": "RAP 01: Construir mallas tridimensionales de escultura orgánica con precisión volumétrica y detalle anatómico.",
+        "competencia_transversal": "240201524 Desarrollar procesos de comunicación eficaces",
+        "rap_transversal": "RAP 18: Sustentación de la memoria descriptiva de proporciones anatómicas y biomecánica del personaje.",
+        "rap_tecnico_id": "RAP-01",
+        "rap_transversal_id": "RAP-18"
+    },
+    {
+        "numero": 6,
+        "guia_id": "GA06",
+        "guia_label": "Guía 06",
+        "fase": "PLANEAR",
+        "trimestre": "I",
+        "actividad_proyecto": "Esculpir masa muscular, pliegues de indumentaria y juntas biomecánicas mediante pinceles de escultura digital y subdivisión.",
+        "competencia_tecnica": "220501083 Producir los componentes de la animación de acuerdo con técnicas de modelado",
+        "rap_tecnico": "RAP 01: Construir mallas tridimensionales de escultura orgánica con precisión volumétrica y detalle anatómico.",
+        "competencia_transversal": "240202501 Interactuar en lengua inglesa de forma oral y escrita",
+        "rap_transversal": "RAP 25 (Inglés 1): Ficha técnica y glosario de terminología anatómica internacional y landmarks en inglés.",
+        "rap_tecnico_id": "RAP-01",
+        "rap_transversal_id": "RAP-25"
+    },
+    {
+        "numero": 7,
+        "guia_id": "GA07",
+        "guia_label": "Guía 07",
+        "fase": "PLANEAR",
+        "trimestre": "I",
+        "actividad_proyecto": "Estampar microtexturas orgánicas, mapas de alfas y accesorios técnicos de protección en la malla esculpida de alta resolución.",
+        "competencia_tecnica": "220501083 Producir los componentes de la animación de acuerdo con técnicas de modelado",
+        "rap_tecnico": "RAP 01: Construir mallas tridimensionales de escultura orgánica con precisión volumétrica y detalle anatómico.",
+        "competencia_transversal": "240201526 Enriquecer su proyecto de vida en un contexto social",
+        "rap_transversal": "RAP 19: Principios éticos de diversidad, inclusión y dignidad en el diseño volumétrico de personajes.",
+        "rap_tecnico_id": "RAP-01",
+        "rap_transversal_id": "RAP-19"
+    },
+    {
+        "numero": 8,
+        "guia_id": "GA08",
+        "guia_label": "Guía 08",
+        "fase": "PLANEAR",
+        "trimestre": "I",
+        "actividad_proyecto": "Reconstruir la topología poligonal limpia en cuadriláteros (quads) trazando anillos y bucles (edge loops) para deformación articular.",
+        "competencia_tecnica": "220501083 Producir los componentes de la animación de acuerdo con técnicas de modelado",
+        "rap_tecnico": "RAP 02: Optimizar la topología poligonal de mallas 3D y desplegar mapas UV uniformes.",
+        "competencia_transversal": "240201527 Generar hábitos saludables mediante actividad física",
+        "rap_transversal": "RAP 20: Ergonomía y postura adecuada en estaciones de trabajo 3D durante retopología intensiva.",
+        "rap_tecnico_id": "RAP-02",
+        "rap_transversal_id": "RAP-20"
+    },
+    {
+        "numero": 9,
+        "guia_id": "GA09",
+        "guia_label": "Guía 09",
+        "fase": "PLANEAR",
+        "trimestre": "I",
+        "actividad_proyecto": "Desplegar mapas UV uniformes y optimizar el empaquetado de islas sin distorsión respetando la escala de texels Game-Ready.",
+        "competencia_tecnica": "220501083 Producir los componentes de la animación de acuerdo con técnicas de modelado",
+        "rap_tecnico": "RAP 02: Optimizar la topología poligonal de mallas 3D y desplegar mapas UV uniformes.",
+        "competencia_transversal": "240201527 Generar hábitos saludables mediante actividad física",
+        "rap_transversal": "RAP 20: Protocolo de pausas activas y ejercicios de muñeca para prevenir túnel carpiano en mapeo UV.",
+        "rap_tecnico_id": "RAP-02",
+        "rap_transversal_id": "RAP-20"
+    },
+    {
+        "numero": 10,
+        "guia_id": "GA10",
+        "guia_label": "Guía 10",
+        "fase": "HACER",
+        "trimestre": "II",
+        "actividad_proyecto": "Proyectar y hornear mapas de alta a baja resolución (Baking de Normales, Curvatura y AO) sobre la malla optimizada.",
+        "competencia_tecnica": "220501083 Producir los componentes de la animación de acuerdo con técnicas de modelado",
+        "rap_tecnico": "RAP 03: Generar y aplicar materiales bajo estándares PBR mediante proyección de mapas y shaders.",
+        "competencia_transversal": "240201527 Generar hábitos saludables mediante programas de actividad física",
+        "rap_transversal": "RAP 20: Practicar hábitos saludables mediante la aplicación de fundamentos de nutrición e higiene.",
+        "rap_tecnico_id": "RAP-03",
+        "rap_transversal_id": "RAP-20"
+    },
+    {
+        "numero": 11,
+        "guia_id": "GA11",
+        "guia_label": "Guía 11",
+        "fase": "HACER",
+        "trimestre": "II",
+        "actividad_proyecto": "Pintar capas de texturas PBR (Albedo, Roughness, Metallic) aplicando máscaras de suciedad y desgaste industrial.",
+        "competencia_tecnica": "220501083 Producir los componentes de la animación de acuerdo con técnicas de modelado",
+        "rap_tecnico": "RAP 03: Generar y aplicar materiales bajo estándares PBR mediante proyección de mapas y shaders.",
+        "competencia_transversal": "240202501 Interactuar en lengua inglesa de forma oral y escrita",
+        "rap_transversal": "RAP 26: Discutir sobre posibles soluciones a problemas dentro de un rango variado de contextos (Inglés 2).",
+        "rap_tecnico_id": "RAP-03",
+        "rap_transversal_id": "RAP-26"
+    },
+    {
+        "numero": 12,
+        "guia_id": "GA12",
+        "guia_label": "Guía 12",
+        "fase": "HACER",
+        "trimestre": "II",
+        "actividad_proyecto": "Ensamblar grafos nodales de shaders físicos con calibración lumínica y dispersión subsuperficial (SSS).",
+        "competencia_tecnica": "220501083 Producir los componentes de la animación de acuerdo con técnicas de modelado",
+        "rap_tecnico": "RAP 03: Generar y aplicar materiales bajo estándares PBR mediante proyección de mapas y shaders.",
+        "competencia_transversal": "240202501 Interactuar en lengua inglesa de forma oral y escrita",
+        "rap_transversal": "RAP 26 (Inglés 2): Especificaciones y documentación de mapas dieléctricos y metálicos en inglés.",
+        "rap_tecnico_id": "RAP-03",
+        "rap_transversal_id": "RAP-26"
+    },
+    {
+        "numero": 13,
+        "guia_id": "GA13",
+        "guia_label": "Guía 13",
+        "fase": "HACER",
+        "trimestre": "II",
+        "actividad_proyecto": "Dibujar bocetos 2D paramétricos con dimensiones reales, cotas y restricciones geométricas estrictas del producto.",
+        "competencia_tecnica": "220101016 Generar prototipo digital según técnicas de modelado y producto",
+        "rap_tecnico": "RAP 04: Modelar prototipos digitales CAD paramétricos hard-surface ajustados a tolerancias dimensionales.",
+        "competencia_transversal": "240202501 Interactuar en lengua inglesa de forma oral y escrita",
+        "rap_transversal": "RAP 26 (Inglés 2): Planos de ensamble y simbología de ajuste mecánico ISO en idioma inglés.",
+        "rap_tecnico_id": "RAP-04",
+        "rap_transversal_id": "RAP-26"
+    },
+    {
+        "numero": 14,
+        "guia_id": "GA14",
+        "guia_label": "Guía 14",
+        "fase": "HACER",
+        "trimestre": "II",
+        "actividad_proyecto": "Ejecutar operaciones sólidas 3D y booleanas conservando el árbol histórico editable en software CAD paramétrico.",
+        "competencia_tecnica": "220101016 Generar prototipo digital según técnicas de modelado y producto",
+        "rap_tecnico": "RAP 04: Modelar prototipos digitales CAD paramétricos hard-surface ajustados a tolerancias dimensionales.",
+        "competencia_transversal": "240201528 Razonamiento cuantitativo y matemáticas",
+        "rap_transversal": "RAP 22: Cálculo matemático de tolerancias dimensionales y encajes mecánicos en CAD.",
+        "rap_tecnico_id": "RAP-04",
+        "rap_transversal_id": "RAP-22"
+    },
+    {
+        "numero": 15,
+        "guia_id": "GA15",
+        "guia_label": "Guía 15",
+        "fase": "HACER",
+        "trimestre": "II",
+        "actividad_proyecto": "Modelar ensambles mecánicos funcionales, generando la vista explosionada (Exploded View) y el manual técnico de ensamble.",
+        "competencia_tecnica": "220101016 Generar prototipo digital según técnicas de modelado y producto",
+        "rap_tecnico": "RAP 04: Modelar prototipos digitales CAD paramétricos hard-surface ajustados a tolerancias dimensionales.",
+        "competencia_transversal": "240202501 Interactuar en lengua inglesa de forma oral y escrita",
+        "rap_transversal": "RAP 26 (Inglés 2): Glosario técnico paramétrico y memoria descriptiva de piezas en inglés.",
+        "rap_tecnico_id": "RAP-04",
+        "rap_transversal_id": "RAP-26"
+    },
+    {
+        "numero": 16,
+        "guia_id": "GA16",
+        "guia_label": "Guía 16",
+        "fase": "HACER",
+        "trimestre": "II",
+        "actividad_proyecto": "Construir la previsualización 3D (Previs) en el entorno cerrado animando cámaras virtuales a ritmo de teaser (Playblast en gris).",
+        "competencia_tecnica": "250201026 Animar elementos de la escena según técnicas y especificaciones",
+        "rap_tecnico": "RAP 09: Construir previsualizaciones dinámicas en entorno 3D ajustando movimientos de cámara y ritmo cinemático.",
+        "competencia_transversal": "240201528 Razonamiento cuantitativo y matemáticas",
+        "rap_transversal": "RAP 22: Matemáticas cinemáticas aplicadas: cálculo de distancia focal, FOV y velocidad de cámara.",
+        "rap_tecnico_id": "RAP-09",
+        "rap_transversal_id": "RAP-22"
+    },
+    {
+        "numero": 17,
+        "guia_id": "GA17",
+        "guia_label": "Guía 17",
+        "fase": "HACER",
+        "trimestre": "III",
+        "actividad_proyecto": "Modelar elementos espaciales y componentes constructivos interiores de la fábrica/laboratorio en entorno BIM.",
+        "competencia_tecnica": "220101016 Generar prototipo digital según técnicas de modelado y producto",
+        "rap_tecnico": "RAP 06: Estructurar modelos de información espacial bajo estándares abiertos IFC y documentación técnica BIM.",
+        "competencia_transversal": "210201501 Ejercer derechos fundamentales del trabajo en el marco de la constitución",
+        "rap_transversal": "RAP 21: Reconocer el trabajo como factor de movilidad social y transformación de la realidad.",
+        "rap_tecnico_id": "RAP-06",
+        "rap_transversal_id": "RAP-21"
+    },
+    {
+        "numero": 18,
+        "guia_id": "GA18",
+        "guia_label": "Guía 18",
+        "fase": "HACER",
+        "trimestre": "III",
+        "actividad_proyecto": "Mapear atributos de propiedades bajo estándar abierto IFC, extrayendo cómputos métricos y memoria técnica asistida por LLMs.",
+        "competencia_tecnica": "220101016 Generar prototipo digital según técnicas de modelado y producto",
+        "rap_tecnico": "RAP 06: Estructurar modelos de información espacial bajo estándares abiertos IFC y documentación técnica BIM.",
+        "competencia_transversal": "240201529 Gestionar procesos propios de la cultura emprendedora",
+        "rap_transversal": "RAP 22: Caracterizar la idea de negocio teniendo en cuenta las oportunidades del sector.",
+        "rap_tecnico_id": "RAP-06",
+        "rap_transversal_id": "RAP-22"
+    },
+    {
+        "numero": 19,
+        "guia_id": "GA19",
+        "guia_label": "Guía 19",
+        "fase": "HACER",
+        "trimestre": "III",
+        "actividad_proyecto": "Configurar parámetros de laminación (slicing), soportes, infill y generar el archivo G-Code verificado para fabricación física o simulada.",
+        "competencia_tecnica": "220101016 Generar prototipo digital según técnicas de modelado y producto",
+        "rap_tecnico": "RAP 05: Configurar parámetros de laminación y generar paquetes de código numérico (G-Code) o prototipos 3D.",
+        "competencia_transversal": "240202501 Interactuar en lengua inglesa de forma oral y escrita",
+        "rap_transversal": "RAP 27: Explicar las funciones de su ocupación laboral usando expresiones de acuerdo al nivel (Inglés 3).",
+        "rap_tecnico_id": "RAP-05",
+        "rap_transversal_id": "RAP-27"
+    },
+    {
+        "numero": 20,
+        "guia_id": "GA20",
+        "guia_label": "Guía 20",
+        "fase": "HACER",
+        "trimestre": "IV",
+        "actividad_proyecto": "Construir armaduras 3D estructurando jerarquías de transformación, nodos padre/hijo y orientación correcta de joints.",
+        "competencia_tecnica": "250201026 Animar elementos de la escena según técnicas y especificaciones",
+        "rap_tecnico": "RAP 10: Integrar estructuras de armadura (Rigging), jerarquías de control y datos de captura de movimiento.",
+        "competencia_transversal": "220601501 Aplicar prácticas de protección ambiental, seguridad y salud en el trabajo",
+        "rap_transversal": "RAP 23: Analizar las estrategias para el control de los impactos ambientales y accidentes laborales.",
+        "rap_tecnico_id": "RAP-10",
+        "rap_transversal_id": "RAP-23"
+    },
+    {
+        "numero": 21,
+        "guia_id": "GA21",
+        "guia_label": "Guía 21",
+        "fase": "HACER",
+        "trimestre": "IV",
+        "actividad_proyecto": "Configurar controladores cinemáticos con conmutación IK/FK y restricciones mecánicas para la actuación del personaje.",
+        "competencia_tecnica": "250201026 Animar elementos de la escena según técnicas y especificaciones",
+        "rap_tecnico": "RAP 10: Integrar estructuras de armadura (Rigging), jerarquías de control y datos de captura de movimiento.",
+        "competencia_transversal": "240202501 Interactuar en lengua inglesa de forma oral y escrita",
+        "rap_transversal": "RAP 28: Comprender información sobre situaciones cotidianas y laborales actuales y futuras (Inglés 4).",
+        "rap_tecnico_id": "RAP-10",
+        "rap_transversal_id": "RAP-28"
+    },
+    {
+        "numero": 22,
+        "guia_id": "GA22",
+        "guia_label": "Guía 22",
+        "fase": "HACER",
+        "trimestre": "IV",
+        "actividad_proyecto": "Pintar pesos de deformación (Skinning), retargetear captura de movimiento MoCap y pulir curvas de animación en el Graph Editor.",
+        "competencia_tecnica": "250201026 Animar elementos de la escena según técnicas y especificaciones",
+        "rap_tecnico": "RAP 10: Integrar estructuras de armadura (Rigging), jerarquías de control y datos de captura de movimiento.",
+        "competencia_transversal": "240202501 Interactuar en lengua inglesa de forma oral y escrita",
+        "rap_transversal": "RAP 28 (Inglés 4): Prompt engineering y descriptores cinematográficos en idioma inglés.",
+        "rap_tecnico_id": "RAP-10",
+        "rap_transversal_id": "RAP-28"
+    },
+    {
+        "numero": 23,
+        "guia_id": "GA23",
+        "guia_label": "Guía 23",
+        "fase": "HACER",
+        "trimestre": "IV",
+        "actividad_proyecto": "Estructurar plantillas de prompts técnicos parametrizados con adaptadores de control estructural (ControlNet) y reglas de restricción.",
+        "competencia_tecnica": "250201039 Desarrollar efectos visuales digitales de acuerdo con proyecto audiovisual",
+        "rap_tecnico": "RAP 11: Estructurar plantillas de prompts técnicos y reglas de restricción lógica asegurando consistencia.",
+        "competencia_transversal": "240202501 Interactuar en lengua inglesa de forma oral y escrita",
+        "rap_transversal": "RAP 28 (Inglés 4): Informe comparativo en inglés sobre estabilidad de render y fidelidad temporal.",
+        "rap_tecnico_id": "RAP-11",
+        "rap_transversal_id": "RAP-28"
+    },
+    {
+        "numero": 24,
+        "guia_id": "GA24",
+        "guia_label": "Guía 24",
+        "fase": "VERIFICAR",
+        "trimestre": "V",
+        "actividad_proyecto": "Configurar y exportar pases AOV 3D (Depth, Normal, Motion) vinculándolos a motores de difusión guiada para render sintético.",
+        "competencia_tecnica": "250201039 Desarrollar efectos visuales digitales de acuerdo con proyecto audiovisual",
+        "rap_tecnico": "RAP 12: Procesar y renderizar secuencias animadas vinculando pases de control 3D y difusión guiada.",
+        "competencia_transversal": "220501501 Aplicar tecnologías de la información y la comunicación (TICs)",
+        "rap_transversal": "RAP 24: Seleccionar herramientas TIC de acuerdo con las necesidades de información.",
+        "rap_tecnico_id": "RAP-12",
+        "rap_transversal_id": "RAP-24"
+    },
+    {
+        "numero": 25,
+        "guia_id": "GA25",
+        "guia_label": "Guía 25",
+        "fase": "VERIFICAR",
+        "trimestre": "V",
+        "actividad_proyecto": "Aplicar filtros de consistencia temporal en video sintético eliminando flicker e interpolando cuadros con flujo óptico (RIFE).",
+        "competencia_tecnica": "250201039 Desarrollar efectos visuales digitales de acuerdo con proyecto audiovisual",
+        "rap_tecnico": "RAP 12: Procesar y renderizar secuencias animadas vinculando pases de control 3D y difusión guiada.",
+        "competencia_transversal": "240202501 Interactuar en lengua inglesa de forma oral y escrita",
+        "rap_transversal": "RAP 29: Presentar un proceso para la realización de una actividad en su quehacer laboral (Inglés 5).",
+        "rap_tecnico_id": "RAP-12",
+        "rap_transversal_id": "RAP-29"
+    },
+    {
+        "numero": 26,
+        "guia_id": "GA26",
+        "guia_label": "Guía 26",
+        "fase": "VERIFICAR",
+        "trimestre": "V",
+        "actividad_proyecto": "Generar niveles de detalle geométrico (LODs) y oclusión de visibilidad en el motor gráfico respetando el presupuesto técnico.",
+        "competencia_tecnica": "220501096 Desarrollar la solución de software de acuerdo con el diseño",
+        "rap_tecnico": "RAP 14: Optimizar e integrar activos 3D en motores en tiempo real garantizando tasa de refresco a 60 FPS.",
+        "competencia_transversal": "240202501 Interactuar en lengua inglesa de forma oral y escrita",
+        "rap_transversal": "RAP 29 (Inglés 5): Presentación ejecutiva en inglés de métricas de profiling y optimización a 60 FPS.",
+        "rap_tecnico_id": "RAP-14",
+        "rap_transversal_id": "RAP-29"
+    },
+    {
+        "numero": 27,
+        "guia_id": "GA27",
+        "guia_label": "Guía 27",
+        "fase": "VERIFICAR",
+        "trimestre": "V",
+        "actividad_proyecto": "Hornear mapas de iluminación estática (Lightmaps), posicionar sondas de reflexión y optimizar materiales para tiempo real.",
+        "competencia_tecnica": "220501096 Desarrollar la solución de software de acuerdo con el diseño",
+        "rap_tecnico": "RAP 14: Optimizar e integrar activos 3D en motores en tiempo real garantizando tasa de refresco a 60 FPS.",
+        "competencia_transversal": "210201501 Ejercer derechos fundamentales del trabajo",
+        "rap_transversal": "RAP 24: Propiedad intelectual, licencias de software y derechos de autor en activos 3D digitales.",
+        "rap_tecnico_id": "RAP-14",
+        "rap_transversal_id": "RAP-24"
+    },
+    {
+        "numero": 28,
+        "guia_id": "GA28",
+        "guia_label": "Guía 28",
+        "fase": "VERIFICAR",
+        "trimestre": "V",
+        "actividad_proyecto": "Analizar el rendimiento con perfiladores gráficos de CPU/GPU, reduciendo Draw Calls y estabilizando la escena a 60 FPS / VR.",
+        "competencia_tecnica": "220501096 Desarrollar la solución de software de acuerdo con el diseño",
+        "rap_tecnico": "RAP 14: Optimizar e integrar activos 3D en motores en tiempo real garantizando tasa de refresco a 60 FPS.",
+        "competencia_transversal": "210201501 Ejercer derechos fundamentales del trabajo",
+        "rap_transversal": "RAP 24: Normatividad laboral, modalidades de teletrabajo y contratos freelance para artistas 3D.",
+        "rap_tecnico_id": "RAP-14",
+        "rap_transversal_id": "RAP-24"
+    },
+    {
+        "numero": 29,
+        "guia_id": "GA29",
+        "guia_label": "Guía 29",
+        "fase": "VERIFICAR",
+        "trimestre": "VI",
+        "actividad_proyecto": "Componer por nodos las capas de render, efectos visuales y máscaras de rotoscopia/segmentación asistida por IA.",
+        "competencia_tecnica": "250201039 Desarrollar efectos visuales digitales de acuerdo con proyecto audiovisual",
+        "rap_tecnico": "RAP 13: Componer y postproducir secuencias audiovisuales mediante integración de capas y correcciones digitales.",
+        "competencia_transversal": "240202501 Interactuar en lengua inglesa de forma oral y escrita",
+        "rap_transversal": "RAP 30: Implementar acciones de mejora relacionadas con el uso de expresiones y desempeño (Inglés 6).",
+        "rap_tecnico_id": "RAP-13",
+        "rap_transversal_id": "RAP-30"
+    },
+    {
+        "numero": 30,
+        "guia_id": "GA30",
+        "guia_label": "Guía 30",
+        "fase": "VERIFICAR",
+        "trimestre": "VI",
+        "actividad_proyecto": "Aplicar corrección de color cinemática (Color Grading) en espacio de color ACES y efectos ópticos de cámara al teaser de 60s.",
+        "competencia_tecnica": "250201039 Desarrollar efectos visuales digitales de acuerdo con proyecto audiovisual",
+        "rap_tecnico": "RAP 13: Componer y postproducir secuencias audiovisuales mediante integración de capas y correcciones digitales.",
+        "competencia_transversal": "240202501 Interactuar en lengua inglesa de forma oral y escrita",
+        "rap_transversal": "RAP 30 (Inglés 6): Subtitulado y adaptación cultural internacional del teaser audiovisual.",
+        "rap_tecnico_id": "RAP-13",
+        "rap_transversal_id": "RAP-30"
+    },
+    {
+        "numero": 31,
+        "guia_id": "GA31",
+        "guia_label": "Guía 31",
+        "fase": "VERIFICAR",
+        "trimestre": "VI",
+        "actividad_proyecto": "Diseñar, limpiar y sincronizar la banda sonora Foley, efectos sonoros y música, exportando el máster final del Teaser de 60 segundos.",
+        "competencia_tecnica": "250201039 Desarrollar efectos visuales digitales de acuerdo con proyecto audiovisual",
+        "rap_tecnico": "RAP 13: Componer y postproducir secuencias audiovisuales mediante integración de capas y correcciones digitales.",
+        "competencia_transversal": "240202501 Interactuar en lengua inglesa de forma oral y escrita",
+        "rap_transversal": "RAP 30 (Inglés 6): Documentación de código y API técnica en inglés profesional estándar.",
+        "rap_tecnico_id": "RAP-13",
+        "rap_transversal_id": "RAP-30"
+    },
+    {
+        "numero": 32,
+        "guia_id": "GA32",
+        "guia_label": "Guía 32",
+        "fase": "VERIFICAR",
+        "trimestre": "VI",
+        "actividad_proyecto": "Programar código POO del sistema de locomoción híbrido (Teletransporte para VR y Primera Persona para simulador de escritorio PC).",
+        "competencia_tecnica": "220501096 Desarrollar la solución de software de acuerdo con el diseño",
+        "rap_tecnico": "RAP 15: Programar scripts de lógica e interacción en lenguajes orientados a objetos con controladores y eventos.",
+        "competencia_transversal": "220501501 Aplicar tecnologías de la información (TICs)",
+        "rap_transversal": "RAP 23: Arquitectura de software, patrones de diseño de interacción y testing de UI.",
+        "rap_tecnico_id": "RAP-15",
+        "rap_transversal_id": "RAP-23"
+    },
+    {
+        "numero": 33,
+        "guia_id": "GA33",
+        "guia_label": "Guía 33",
+        "fase": "VERIFICAR",
+        "trimestre": "VI",
+        "actividad_proyecto": "Programar componentes detectores de colisión (Triggers/Colliders) y mecánicas físicas de agarre/movimiento de piezas del producto.",
+        "competencia_tecnica": "220501096 Desarrollar la solución de software de acuerdo con el diseño",
+        "rap_tecnico": "RAP 15: Programar scripts de lógica e interacción en lenguajes orientados a objetos con controladores y eventos.",
+        "competencia_transversal": "240201529 Gestionar cultura emprendedora y empresarial",
+        "rap_transversal": "RAP 22: Presupuestación técnica y estimación de costos en desarrollo de software interactivo.",
+        "rap_tecnico_id": "RAP-15",
+        "rap_transversal_id": "RAP-22"
+    },
+    {
+        "numero": 34,
+        "guia_id": "GA34",
+        "guia_label": "Guía 34",
+        "fase": "VERIFICAR",
+        "trimestre": "VI",
+        "actividad_proyecto": "Programar el configurador dinámico de cambio de materiales en tiempo real con disparador de feedback multisensorial (audio y partículas).",
+        "competencia_tecnica": "220501096 Desarrollar la solución de software de acuerdo con el diseño",
+        "rap_tecnico": "RAP 15: Programar scripts de lógica e interacción en lenguajes orientados a objetos con controladores y eventos.",
+        "competencia_transversal": "240202501 Interactuar en lengua inglesa de forma oral y escrita",
+        "rap_transversal": "RAP 30 (Inglés 6): Pitch oral del teaser terminado en inglés ante jurado internacional.",
+        "rap_tecnico_id": "RAP-15",
+        "rap_transversal_id": "RAP-30"
+    },
+    {
+        "numero": 35,
+        "guia_id": "GA35",
+        "guia_label": "Guía 35",
+        "fase": "VERIFICAR",
+        "trimestre": "VI",
+        "actividad_proyecto": "Ejecutar pruebas de depuración (debugging), arquitectura de datos de interacción y consola de control del simulador interactivo.",
+        "competencia_tecnica": "220501096 Desarrollar la solución de software de acuerdo con el diseño",
+        "rap_tecnico": "RAP 15: Programar scripts de lógica e interacción en lenguajes orientados a objetos con controladores y eventos.",
+        "competencia_transversal": "240201524 Desarrollar procesos de comunicación eficaces",
+        "rap_transversal": "RAP 18: Defensa argumentada del máster audiovisual ante el comité técnico y directivo.",
+        "rap_tecnico_id": "RAP-15",
+        "rap_transversal_id": "RAP-18"
+    },
+    {
+        "numero": 36,
+        "guia_id": "GA36",
+        "guia_label": "Guía 36",
+        "fase": "ACTUAR",
+        "trimestre": "VII",
+        "actividad_proyecto": "Diseñar e implementar menús navegables, botones y paneles HUD espaciales 3D (World-Space UI) según principios UX.",
+        "competencia_tecnica": "220501096 Desarrollar la solución de software de acuerdo con el diseño",
+        "rap_tecnico": "RAP 16: Compilar y desplegar aplicaciones interactivas multi-plataforma integrando interfaces de usuario UI/UX.",
+        "competencia_transversal": "240201529 Gestionar cultura emprendedora y empresarial",
+        "rap_transversal": "RAP 22: Modelo de negocio Lean Canvas y propuesta de valor comercial del Gemelo Digital.",
+        "rap_tecnico_id": "RAP-16",
+        "rap_transversal_id": "RAP-22"
+    },
+    {
+        "numero": 37,
+        "guia_id": "GA37",
+        "guia_label": "Guía 37",
+        "fase": "ACTUAR",
+        "trimestre": "VII",
+        "actividad_proyecto": "Integrar el personaje antropomorfo como asistente interactivo animado en el Gemelo Digital y compilar la aplicación ejecutable (.exe / WebGL).",
+        "competencia_tecnica": "220501096 Desarrollar la solución de software de acuerdo con el diseño",
+        "rap_tecnico": "RAP 16: Compilar y desplegar aplicaciones interactivas multi-plataforma integrando interfaces de usuario UI/UX.",
+        "competencia_transversal": "240201529 Gestionar cultura emprendedora y empresarial",
+        "rap_transversal": "RAP 22: Pitch Deck comercial, canales de distribución y monetización de soluciones 3D.",
+        "rap_tecnico_id": "RAP-16",
+        "rap_transversal_id": "RAP-22"
+    },
+    {
+        "numero": 38,
+        "guia_id": "GA38",
+        "guia_label": "Guía 38",
+        "fase": "ACTUAR",
+        "trimestre": "VII",
+        "actividad_proyecto": "Compilar, curar técnicamente y maquetar el portafolio profesional web del egresado integrando los tres macroproyectos.",
+        "competencia_tecnica": "220501096 Desarrollar la solución de software de acuerdo con el diseño",
+        "rap_tecnico": "RAP 31: Validar y entregar el producto interactivo/portafolio 3D final según requerimientos del sector productivo.",
+        "competencia_transversal": "Trabajo de Integración de Portafolio",
+        "rap_transversal": "Validación y compilación del portafolio técnico final del egresado.",
+        "rap_tecnico_id": "RAP-31",
+        "rap_transversal_id": null
+    },
+    {
+        "numero": 39,
+        "guia_id": "GA39",
+        "guia_label": "Guía 39",
+        "fase": "ACTUAR",
+        "trimestre": "VII",
+        "actividad_proyecto": "Sustentar técnicamente el portafolio integral de soluciones 3D ante el comité evaluador institucional y sector productivo.",
+        "competencia_tecnica": "220501096 Desarrollar la solución de software de acuerdo con el diseño",
+        "rap_tecnico": "RAP 31: Validar y entregar el producto interactivo/portafolio 3D final según requerimientos del sector productivo.",
+        "competencia_transversal": "Sustentación Final",
+        "rap_transversal": "Defensa y sustentación técnica del portafolio profesional del egresado.",
+        "rap_tecnico_id": "RAP-31",
+        "rap_transversal_id": null
+    }
+]
 };
 
 const STORAGE_KEY = 'sena_proyecto_formativo_data';
@@ -223,6 +771,9 @@ export function getProyectoFormativo() {
       }
       if (!parsed.valoracion_productiva) {
         parsed.valoracion_productiva = JSON.parse(JSON.stringify(PROYECTO_FORMATIVO_DEFAULT.valoracion_productiva));
+      }
+      if (!parsed.planeacion_proyecto || !Array.isArray(parsed.planeacion_proyecto) || parsed.planeacion_proyecto.length === 0) {
+        parsed.planeacion_proyecto = JSON.parse(JSON.stringify(PROYECTO_FORMATIVO_DEFAULT.planeacion_proyecto));
       }
       return parsed;
     }
@@ -250,6 +801,31 @@ export function resetProyectoFormativo() {
     console.error('Error al resetear proyecto formativo:', e);
     return PROYECTO_FORMATIVO_DEFAULT;
   }
+}
+
+
+export function getPlaneacionProyecto() {
+  const pf = getProyectoFormativo();
+  return (pf && Array.isArray(pf.planeacion_proyecto)) ? pf.planeacion_proyecto : PROYECTO_FORMATIVO_DEFAULT.planeacion_proyecto;
+}
+
+export function getActividadesProyectoForRap(rapId) {
+  if (!rapId) return [];
+  const cleanId = String(rapId).toUpperCase().replace(/[^0-9A-Z]/g, '');
+  const numMatch = String(rapId).match(/(\d+)/);
+  const numInt = numMatch ? parseInt(numMatch[1], 10) : null;
+  const numStr = numMatch ? numMatch[1].padStart(2, '0') : null;
+
+  const list = getPlaneacionProyecto();
+  return list.filter(p => {
+    if (p.rap_tecnico_id && p.rap_tecnico_id === rapId) return true;
+    if (p.rap_tecnico_id && p.rap_tecnico_id.replace(/[^0-9A-Z]/g, '') === cleanId) return true;
+    if (!p.rap_tecnico) return false;
+    const norm = p.rap_tecnico.toUpperCase();
+    if (numStr && norm.includes('RAP ' + numStr)) return true;
+    if (numInt !== null && norm.includes('RAP ' + numInt + ':')) return true;
+    return false;
+  });
 }
 
 export function getMacroproyectoForRap(rapId) {
