@@ -7,6 +7,7 @@ import { CurriculumTable } from './components/curriculum-table.js';
 import { DocumentBuilder } from './components/document-builder.js';
 import { getAprendices, addAprendiz, deleteAprendiz, resetAprendices, importAprendicesFromText, getEvaluacion, saveEvaluacion } from './data/aprendices-db.js';
 import { N8nClient } from './automation/n8n-client.js';
+import { ProyectoFormativoView } from './components/proyecto-formativo-view.js';
 
 class App {
   constructor() {
@@ -16,6 +17,7 @@ class App {
 
     this.pipelineViewer = new PipelineViewer('viewInfografia');
     this.curriculumTable = new CurriculumTable('viewMalla');
+    this.proyectoView = new ProyectoFormativoView('viewProyecto');
     this.documentBuilder = new DocumentBuilder('viewGenerador');
     this.n8nClient = new N8nClient('viewN8n');
   }
@@ -24,7 +26,9 @@ class App {
     this.loadCustomRapsFromStorage();
     this.renderHeader();
     this.renderHero();
-    this.switchView('infografia');
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialView = urlParams.get('view') || 'infografia';
+    this.switchView(initialView);
     this.setupModal();
   }
 
@@ -54,7 +58,7 @@ class App {
     });
 
     // Hide all view containers
-    ['viewInfografia', 'viewMalla', 'viewGenerador', 'viewN8n'].forEach(id => {
+    ['viewInfografia', 'viewMalla', 'viewProyecto', 'viewGenerador', 'viewN8n'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
@@ -71,6 +75,10 @@ class App {
       const el = document.getElementById('viewMalla');
       if (el) el.style.display = 'block';
       this.curriculumTable.render(this.currentProgram);
+    } else if (this.currentView === 'proyecto') {
+      const el = document.getElementById('viewProyecto');
+      if (el) el.style.display = 'block';
+      this.proyectoView.render();
     } else if (this.currentView === 'generador') {
       const el = document.getElementById('viewGenerador');
       if (el) el.style.display = 'block';

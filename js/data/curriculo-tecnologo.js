@@ -10,7 +10,7 @@ export const CURRICULO_TECNOLOGO = {
     "creditos_lectiva": 47,
     "horas_practica": 864,
     "creditos_practica": 18,
-    "perfil_egresado": "Profesional técnico capaz de liderar y desarrollar soluciones 3D integrales para el sector productivo mediante tres macroproyectos: Prototipos de Manufactura CAD/BIM (3D para Hacer), Teaser Cinemático de 60s (3D para Ver) y Simuladores Interactivos / Gemelos Digitales VR-Ready (3D para Interactuar) bajo flujos híbridos asistidos por IA.",
+    "perfil_egresado": "Profesional integral con competencias técnicas y creativas para diseñar, modelar, animar y desplegar contenidos tridimensionales aplicados a industrias audiovisuales, entretenimiento interactivo, manufactura digital, arquitectura y simulación. Domina el pipeline de producción completo —desde la conceptualización y optimización de activos hasta el renderizado y entornos en tiempo real— integrando flujos de trabajo convencionales con herramientas de asistencia digital e inteligencia artificial para responder a las demandas del mercado global.",
     "enfoque": "Tres Macroproyectos Nucleares: 3D PARA HACER (Manufactura Aditiva & BIM) + 3D PARA VER (Teaser Cinemático 60s & VFX con IA) + 3D PARA INTERACTUAR (Gemelo Digital Multiplataforma a 60 FPS / VR)"
   },
   "trimestres": [

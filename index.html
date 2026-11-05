@@ -12,7 +12,7 @@
   
   <!-- Hojas de estilo -->
   <link rel="stylesheet" href="css/main.css">
-  <link rel="stylesheet" href="css/print-sena.css?v=3.0">
+  <link rel="stylesheet" href="css/print-sena.css?v=3.2">
 </head>
 <body>
 
@@ -41,11 +41,11 @@
 
     <!-- Acciones Rápidas -->
     <div class="header-actions">
-      <button class="btn-action primary" onclick="window.app.switchView('generador')">
-        📄 Generar Documento
+      <button class="btn-action primary" onclick="window.app.switchView('proyecto')">
+        📁 Proyecto Formativo
       </button>
-      <button class="btn-action" onclick="window.app.switchView('n8n')">
-        ⚡ n8n
+      <button class="btn-action" onclick="window.app.switchView('generador')">
+        📄 Generar Guías
       </button>
     </div>
   </header>
@@ -66,17 +66,18 @@
       <button class="view-nav-btn" data-view="malla" onclick="window.app.switchView('malla')">
         <span>📊</span> Malla Curricular & RAPs por Trimestre
       </button>
-      <button class="view-nav-btn" data-view="generador" onclick="window.app.switchView('generador')">
-        <span>📄</span> Generador Institucional SENA (Guías, Planeación, Proyecto)
+      <button class="view-nav-btn" data-view="proyecto" onclick="window.app.switchView('proyecto')">
+        <span>📁</span> Proyecto Formativo
       </button>
-      <button class="view-nav-btn" data-view="n8n" onclick="window.app.switchView('n8n')">
-        <span>⚡</span> Automatización con n8n
+      <button class="view-nav-btn" data-view="generador" onclick="window.app.switchView('generador')">
+        <span>📄</span> Generador Institucional SENA (Guías, Planeación, Instrumentos)
       </button>
     </nav>
 
     <!-- Contenedores Dinámicos de las Vistas -->
     <div id="viewInfografia"></div>
     <div id="viewMalla" style="display: none;"></div>
+    <div id="viewProyecto" style="display: none;"></div>
     <div id="viewGenerador" style="display: none;"></div>
     <div id="viewN8n" style="display: none;"></div>
 
@@ -94,7 +95,7 @@
   <div class="app-toast" id="appToast"></div>
 
   <!-- Scripts Modulares ES6 -->
-  <script type="module" src="js/app.js?v=3.0"></script>
+  <script type="module" src="js/app.js?v=3.2"></script>
 
 </body>
 </html>

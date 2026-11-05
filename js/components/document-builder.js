@@ -5,6 +5,7 @@ import { CURRICULO_MODELADO } from '../data/curriculo-modelado.js';
 import { CURRICULO_ANIMACION } from '../data/curriculo-animacion.js';
 import { getInstrumentoForRap, INSTRUMENTOS_EVALUACION } from '../data/instrumentos-evaluacion.js';
 import { getAprendices, getEvaluacion, saveEvaluacion } from '../data/aprendices-db.js';
+import { getProyectoFormativo, getMacroproyectoForRap } from '../data/proyecto-formativo-db.js';
 
 export class DocumentBuilder {
   constructor(containerId) {
@@ -75,7 +76,7 @@ export class DocumentBuilder {
               <option value="guia" ${this.currentDocType === 'guia' ? 'selected' : ''}>📄 Guía de Aprendizaje</option>
               <option value="instrumento" ${this.currentDocType === 'instrumento' ? 'selected' : ''}>📋 Instrumento de Evaluación (Lista de Chequeo)</option>
               <option value="planeacion" ${this.currentDocType === 'planeacion' ? 'selected' : ''}>🗓️ Planeación Pedagógica</option>
-              <option value="proyecto" ${this.currentDocType === 'proyecto' ? 'selected' : ''}>📁 Proyecto Formativo</option>
+              <option value="proyecto" ${this.currentDocType === 'proyecto' ? 'selected' : ''}>📁 Proyecto Formativo (Vista previa)</option>
             </select>
           </div>
 
@@ -371,6 +372,14 @@ export class DocumentBuilder {
     if (this.currentProgram === 'modelado') curriculo = CURRICULO_MODELADO;
     if (this.currentProgram === 'animacion') curriculo = CURRICULO_ANIMACION;
 
+    // Datos dinámicos del Proyecto Formativo y Macroproyecto
+    const pf = getProyectoFormativo();
+    const nombreProyectoRaw = (pf && pf.info_basica && pf.info_basica.nombre_proyecto) 
+      ? pf.info_basica.nombre_proyecto 
+      : 'Desarrollo de contenidos digitales 3D interactivos, cinemáticos y prototipos de manufactura bajo flujos híbridos asistidos por IA';
+    const nombreProyecto = String(nombreProyectoRaw).replace(/\.+$/, '').trim();
+    const macroproyecto = getMacroproyectoForRap(rapKey);
+
     // RAPs transversales vinculados
     const activeTransversales = this.getActiveTransversales(rapKey);
     const horasTecnicas = rap.horas || 144;
@@ -426,7 +435,8 @@ export class DocumentBuilder {
         <ul class="sena-list" style="list-style-type: disc;">
           <li><strong>Denominación del programa de formación:</strong> ${curriculo.info.denominacion}.</li>
           <li><strong>Código del programa de formación:</strong> ${curriculo.info.codigo}.</li>
-          <li><strong>Nombre del proyecto:</strong> Desarrollo de contenidos digitales 3D interactivos, cinemáticos y prototipos de manufactura bajo flujos híbridos asistidos por IA.</li>
+          <li><strong>Nombre del proyecto:</strong> ${nombreProyecto}.</li>
+          ${macroproyecto ? `<li><strong>Macroproyecto formativo:</strong> ${macroproyecto.nombre} — ${macroproyecto.subtitulo}.</li>` : ''}
           <li><strong>Fase del proyecto:</strong> ${faseProyectoTag}: ${trimInfo.fase}.</li>
           <li><strong>Actividad de proyecto:</strong> Desarrollar y optimizar los activos 3D, cinemáticos o interactivos según especificaciones de producción y estándares técnicos.</li>
           <li><strong>Centro de formación / Regional:</strong> ${centro}.</li>
@@ -457,7 +467,7 @@ export class DocumentBuilder {
           Apreciado aprendiz: la industria de contenidos digitales, videojuegos, arquitectura y efectos visuales demanda profesionales integrales capaces de dominar flujos de trabajo contemporáneos de alta eficiencia y rigor técnico. En esta guía de aprendizaje correspondiente a la actividad clave <strong>"${rap.actividad_clave}"</strong>, usted abordará los fundamentos de la técnica 3D y su aceleración asistida por Inteligencia Artificial${activeTransversales.length > 0 ? `, articulados armónicamente con las competencias transversales: ${activeTransversales.map(t => `<strong>"${t.competencia}"</strong>`).join(', ')}` : ''}.
         </p>
         <p class="sena-body-text">
-          A lo largo de este itinerario formativo, aprenderá a sintetizar conceptos, optimizar flujos de producción y generar como producto principal: <em>"${rap.producto_egresado || rap.evidencia}"</em>, asegurando que su entrega cumpla con los estándares internacionales de la industria moderna y los requerimientos del sector productivo.
+          A lo largo de este itinerario formativo, aprenderá a sintetizar conceptos, optimizar flujos de producción y generar como producto principal: <em>"${rap.producto_egresado || rap.evidencia}"</em>${macroproyecto ? `, articulado como entrega técnica al macroproyecto formativo <strong>"${macroproyecto.nombre}"</strong>` : ''}, asegurando que su entrega cumpla con los estándares internacionales de la industria moderna y los requerimientos del sector productivo.
         </p>
         <p class="sena-body-text">
           Se le invita a participar de manera individual y colaborativa en cada momento formativo propuesto en las distintas evidencias, desarrollando sus capacidades, habilidades y talentos que lo harán una mejor persona, ciudadano y profesional idóneo para el sector productivo.
@@ -1465,7 +1475,22 @@ export class DocumentBuilder {
     if (this.currentProgram === 'modelado') curriculo = CURRICULO_MODELADO;
     if (this.currentProgram === 'animacion') curriculo = CURRICULO_ANIMACION;
 
+    const pf = getProyectoFormativo();
+    const mp1 = (pf.macroproyectos && pf.macroproyectos[0]) || {};
+    const mp2 = (pf.macroproyectos && pf.macroproyectos[1]) || {};
+    const mp3 = (pf.macroproyectos && pf.macroproyectos[2]) || {};
+    const centroDoc = (pf.info_basica && pf.info_basica.centro) || centro;
+    const regionalDoc = (pf.info_basica && pf.info_basica.regional) || 'ANTIOQUIA - ITAGÜÍ';
+
     return `
+      <!-- Banner de acceso rápido al editor interactivo -->
+      <div class="no-print" style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 10px 16px; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+        <span style="color: #38bdf8; font-size: 0.88rem;">💡 Para editar y personalizar cada uno de los campos de este proyecto formativo, utilice el editor interactivo en la pestaña <strong>📁 Proyecto Formativo</strong>.</span>
+        <button type="button" class="btn-action primary" onclick="window.app.switchView('proyecto')" style="padding: 0.45rem 1rem; font-size: 0.82rem; white-space: nowrap; background: linear-gradient(135deg, #10b981, #059669);">
+          ✏️ Abrir Editor
+        </button>
+      </div>
+
       <div class="sena-document" id="senaDocumentContent">
         <!-- Encabezado Institucional SENA -->
         <table class="sena-header-table">
@@ -1481,14 +1506,14 @@ export class DocumentBuilder {
               <strong style="font-size: 12pt; color: #00324D;">PROYECTO FORMATIVO</strong>
             </td>
             <td class="sena-version-box">
-              <strong>Código:</strong> GFPI-F-016<br>
-              <strong>Versión:</strong> 02<br>
+              <strong>Código:</strong> ${pf.codigo_formato || 'GFPI-F-016'}<br>
+              <strong>Versión:</strong> ${pf.version || '03'}<br>
               <strong>Estado:</strong> Aprobado
             </td>
           </tr>
           <tr>
             <td colspan="2" style="font-size: 8.5pt; background: #f8fafc;">
-              <strong>Centro:</strong> ${centro} | <strong>Regional:</strong> ANTIOQUIA - ITAGÜÍ
+              <strong>Centro:</strong> ${centroDoc} | <strong>Regional:</strong> ${regionalDoc}
             </td>
           </tr>
         </table>
@@ -1498,9 +1523,9 @@ export class DocumentBuilder {
         <table class="sena-table">
           <tr>
             <td style="width: 25%; font-weight: bold;">1.1 Centro de Formación:</td>
-            <td style="width: 45%;">${centro}</td>
+            <td style="width: 45%;">${centroDoc}</td>
             <td style="width: 15%; font-weight: bold;">1.2 Regional:</td>
-            <td style="width: 15%;">ANTIOQUIA - ITAGÜÍ</td>
+            <td style="width: 15%;">${regionalDoc}</td>
           </tr>
           <tr>
             <td style="font-weight: bold;">1.3 Formador / Diseñador Curricular:</td>
@@ -1508,106 +1533,110 @@ export class DocumentBuilder {
           </tr>
           <tr>
             <td style="font-weight: bold;">1.4 Nombre del Proyecto:</td>
-            <td colspan="3"><strong>Creación de un portafolio de contenidos 3d audiovisuales e interactivos para la visualización de productos y servicios del sector productivo.</strong></td>
+            <td colspan="3"><strong style="color: #00324D;">${this.escapeHtml(pf.info_basica.nombre_proyecto)}</strong></td>
           </tr>
           <tr>
-            <td style="font-weight: bold;">1.4 Programa de Formación:</td>
-            <td><strong>TECNÓLOGO EN PRODUCCIÓN DE CONTENIDOS 3D</strong></td>
-            <td style="font-weight: bold;">1.5 Tiempo Estimado:</td>
-            <td><strong>3.120 Horas</strong> (65 Créditos)</td>
-          </tr>
-          <tr>
-            <td style="font-weight: bold;">1.6 Empresas o Instituciones:</td>
-            <td colspan="3">Todas las entidades que participan directa e indirectamente en la elaboración y futura ejecución del proyecto.</td>
+            <td style="font-weight: bold;">1.5 Programa de Formación:</td>
+            <td><strong>${this.escapeHtml(pf.info_basica.programa)}</strong></td>
+            <td style="font-weight: bold;">1.6 Tiempo Estimado:</td>
+            <td><strong>${pf.info_basica.tiempo_ejecucion_horas || 3120} Horas</strong> (${pf.info_basica.creditos_totales || 65} Créditos)</td>
           </tr>
           <tr>
             <td style="font-weight: bold;">1.7 Palabras Claves:</td>
-            <td colspan="3" style="font-size: 8.5pt;">Animación 3D, Portafolio 3D, Contenido 3D, Visualización de productos, Reel de animación, Activos digitales, VFX (Efectos Visuales), Industria 4.0, Sector productivo, Visualización técnica, Marketing 3D, Simulación 3D, Realidad Aumentada (RA), Realidad Virtual (RV), Diseño industrial, Proyecto formativo, Microproyectos, Formación profesional, SENA, Tecnólogo en Animación 3D, Portafolio profesional, Demo reel, Contenido interactivo, Producción audiovisual, Narrativa 3D, Actuación de personaje, Iluminación 3D, Texturizado 3D.</td>
-          </tr>
-          <tr>
-            <td style="font-weight: bold;">1.8 Total RAPs del Programa:</td>
-            <td><strong>55 Resultados de Aprendizaje</strong></td>
-            <td style="font-weight: bold;">1.9 RAPs por Tipo:</td>
-            <td>• Específicos: <strong>25</strong><br>• Transversales: <strong>26</strong><br>• Claves: <strong>4</strong></td>
+            <td colspan="3" style="font-size: 8.5pt; color: #475569;">${this.escapeHtml(pf.info_basica.palabras_clave)}</td>
           </tr>
         </table>
 
-        <!-- 2. ESTRUCTURA DEL PROYECTO -->
-        <div class="sena-section-title">2. ESTRUCTURA DEL PROYECTO</div>
+        <!-- 2. ESTRUCTURA Y MACROPROYECTOS FORMATIVOS -->
+        <div class="sena-section-title">2. ESTRUCTURA Y MACROPROYECTOS FORMATIVOS</div>
+
+        <table class="sena-table" style="font-size: 9pt;">
+          <thead>
+            <tr>
+              <th style="background-color: #00324D; color: #fff; width: 28%; font-weight: bold;">Macroproyecto</th>
+              <th style="background-color: #00324D; color: #fff; width: 14%; text-align: center; font-weight: bold;">Horas / Guías</th>
+              <th style="background-color: #00324D; color: #fff; font-weight: bold;">Entregables y Productos Técnicos Verificables</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="vertical-align: top;"><strong style="color: #00324D;">${this.escapeHtml(mp1.nombre || '3D PARA HACER')}</strong><br><span style="font-size: 8pt; color: #475569;">${this.escapeHtml(mp1.subtitulo || '')}</span></td>
+              <td style="vertical-align: top; text-align: center;"><span class="sena-badge" style="background: #e0f2fe; color: #0369a1; font-weight: bold;">${mp1.guias_rango || 'GUÍA 01 - 14'}</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">${mp1.horas || 672} h</div></td>
+              <td style="vertical-align: top; font-size: 8.5pt;"><ul style="margin: 0; padding-left: 1.2rem;">${(mp1.entregables || []).map(e => `<li>${this.escapeHtml(e)}</li>`).join('')}</ul></td>
+            </tr>
+            <tr style="background: #f8fafc;">
+              <td style="vertical-align: top;"><strong style="color: #00324D;">${this.escapeHtml(mp2.nombre || '3D PARA VER')}</strong><br><span style="font-size: 8pt; color: #475569;">${this.escapeHtml(mp2.subtitulo || '')}</span></td>
+              <td style="vertical-align: top; text-align: center;"><span class="sena-badge" style="background: #f3e8ff; color: #6b21a8; font-weight: bold;">${mp2.guias_rango || 'GUÍA 15 - 28'}</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">${mp2.horas || 672} h</div></td>
+              <td style="vertical-align: top; font-size: 8.5pt;"><ul style="margin: 0; padding-left: 1.2rem;">${(mp2.entregables || []).map(e => `<li>${this.escapeHtml(e)}</li>`).join('')}</ul></td>
+            </tr>
+            <tr>
+              <td style="vertical-align: top;"><strong style="color: #00324D;">${this.escapeHtml(mp3.nombre || '3D PARA INTERACTUAR')}</strong><br><span style="font-size: 8pt; color: #475569;">${this.escapeHtml(mp3.subtitulo || '')}</span></td>
+              <td style="vertical-align: top; text-align: center;"><span class="sena-badge" style="background: #d1fae5; color: #065f46; font-weight: bold;">${mp3.guias_rango || 'GUÍA 29 - 37'}</span><div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">${mp3.horas || 432} h</div></td>
+              <td style="vertical-align: top; font-size: 8.5pt;"><ul style="margin: 0; padding-left: 1.2rem;">${(mp3.entregables || []).map(e => `<li>${this.escapeHtml(e)}</li>`).join('')}</ul></td>
+            </tr>
+          </tbody>
+        </table>
 
         <div class="sena-sub-title">2.1 Planteamiento del problema o necesidad que se pretende solucionar</div>
         <p style="text-align: justify; margin-bottom: 0.75rem; font-size: 9pt;">
-          El sector productivo moderno exige la transformación digital de sus procesos, especialmente en la comunicación y promoción de productos y servicios. Las empresas, desde las pequeñas y medianas hasta las grandes corporaciones, están migrando de métodos tradicionales a soluciones audiovisuales e interactivas. Esto genera una creciente demanda de profesionales capaces de crear contenido 3D de alta calidad para la visualización de productos, la animación de servicios y la producción de activos digitales para entornos interactivos (como la web, aplicaciones móviles y experiencias de realidad virtual y aumentada).
+          ${this.escapeHtml(pf.problema.descripcion)}
         </p>
-        <p style="text-align: justify; margin-bottom: 0.75rem; font-size: 9pt;">
-          <strong>Problema:</strong> Existe un desajuste significativo entre la demanda de la industria y la oferta de profesionales calificados en animación 3D con un enfoque específico en la visualización de productos y servicios. Muchos tecnólogos en animación se forman principalmente para la industria del entretenimiento (cine, series de animación), lo que limita su capacidad para adaptarse a las necesidades técnicas y comerciales del sector productivo. Esta brecha impide que las empresas aprovechen plenamente el potencial de la visualización 3D para optimizar sus procesos de marketing, diseño, capacitación y ventas.
+        <p style="text-align: justify; margin-bottom: 0.75rem; font-size: 9pt; font-style: italic; background: #f8fafc; padding: 10px; border-left: 3px solid #00324D;">
+          <strong>Pregunta Problémica:</strong> ${this.escapeHtml(pf.problema.pregunta_investigacion)}
         </p>
-        <p style="text-align: justify; margin-bottom: 0.35rem; font-size: 9pt;"><strong>Causas:</strong></p>
-        <ul style="margin-left: 1.5rem; margin-bottom: 0.75rem; font-size: 8.5pt;">
-          <li><strong>Formación desactualizada o genérica:</strong> Los programas de formación en animación 3D a menudo se centran en un enfoque narrativo y cinematográfico, sin abordar las especificidades de la producción de contenidos para empresas.</li>
-          <li><strong>Falta de experiencia práctica:</strong> Los egresados carecen de experiencia real en proyectos con clientes, lo que les impide desarrollar un portafolio profesional que demuestre habilidades en áreas como la simulación de fluidos, el product shot o la creación de activos optimizados para aplicaciones interactivas.</li>
-          <li><strong>Desconocimiento de las necesidades del mercado:</strong> La mayoría de los estudiantes no están al tanto de la alta demanda de habilidades en áreas como la visualización arquitectónica, la simulación de prototipos o la creación de contenido para e-commerce.</li>
-        </ul>
-        <p style="text-align: justify; margin-bottom: 0.35rem; font-size: 9pt;"><strong>Consecuencias:</strong></p>
-        <ul style="margin-left: 1.5rem; margin-bottom: 0.75rem; font-size: 8.5pt;">
-          <li><strong>Pérdida de competitividad:</strong> Las empresas colombianas que no pueden acceder a talento calificado en 3D pierden competitividad frente a mercados que sí utilizan estas tecnologías para sus productos y servicios.</li>
-          <li><strong>Talento subutilizado:</strong> Los profesionales de la animación 3D terminan trabajando en áreas que no corresponden a sus habilidades, o deben reajustar su perfil profesional por su cuenta, perdiendo tiempo valioso.</li>
-          <li><strong>Costos elevados:</strong> La falta de profesionales locales obliga a las empresas a contratar servicios de visualización 3D en el extranjero, lo que aumenta los costos y prolonga los plazos de entrega.</li>
-        </ul>
-        <p style="text-align: justify; margin-bottom: 1.25rem; font-size: 9pt; font-style: italic; background: #f8fafc; padding: 10px; border-left: 3px solid #00324D;">
-          <strong>Pregunta Problémica:</strong> ¿Cómo la creación de un portafolio de contenidos 3D centrado en la visualización de productos y servicios, se convierte en una herramienta fundamental para que el aprendiz proyecte su perfil profesional y garantice su competitividad en el mercado?
-        </p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 1rem;">
+          <div>
+            <strong style="color: #b91c1c; font-size: 8.5pt;">Causas Identificadas:</strong>
+            <ul style="margin-left: 1.2rem; margin-top: 4px; font-size: 8pt;">
+              ${(pf.problema.causas || []).map(c => `<li>${this.escapeHtml(c)}</li>`).join('')}
+            </ul>
+          </div>
+          <div>
+            <strong style="color: #991b1b; font-size: 8.5pt;">Consecuencias en el Entorno Productivo:</strong>
+            <ul style="margin-left: 1.2rem; margin-top: 4px; font-size: 8pt;">
+              ${(pf.problema.consecuencias || []).map(c => `<li>${this.escapeHtml(c)}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
 
         <div class="sena-sub-title">2.2 Justificación del proyecto</div>
         <p style="text-align: justify; margin-bottom: 0.75rem; font-size: 9pt;">
-          La transformación digital ha redefinido el panorama del sector productivo, obligando a las empresas a adoptar nuevas tecnologías para mantenerse competitivas. Hoy en día, la comunicación visual de productos y servicios ya no se limita a fotografías o videos tradicionales; la animación 3D ha emergido como una herramienta indispensable para la visualización, el marketing y la capacitación. Sin embargo, a pesar de la creciente demanda de estas habilidades en industrias como la manufactura, el diseño industrial, la arquitectura y el e-commerce, existe una brecha significativa en la formación de profesionales que puedan satisfacer estas necesidades.
+          ${this.escapeHtml(pf.justificacion)}
         </p>
-        <p style="text-align: justify; margin-bottom: 0.75rem; font-size: 9pt;">
-          El proyecto formativo <em>"Creación de un portafolio de contenidos 3D audiovisuales e interactivos para la visualización de productos y servicios del sector productivo"</em> se justifica como una solución directa a este problema. A través de la realización de los macroproyectos formativos estructurados bajo flujos híbridos asistidos por IA, la propuesta busca dotar a los aprendices de las competencias técnicas y el conocimiento práctico para generar un portafolio profesional que demuestre su versatilidad.
-        </p>
-        <ul style="margin-left: 1.5rem; margin-bottom: 0.75rem; font-size: 8.5pt;">
-          <li><strong>Aplicación práctica:</strong> Creación de productos tangibles como un prototipo CAD explosionado con guía de ensamble, manufactura aditiva y teaser cinemático.</li>
-          <li><strong>Habilidades interactivas:</strong> Desarrollo de activos optimizados para entornos interactivos (Gemelos Digitales, simuladores PC y VR-Ready).</li>
-          <li><strong>Dominio técnico:</strong> Integración de elementos 3D con difusión asistida y render multicanal para satisfacer los más altos estándares.</li>
-          <li><strong>Versatilidad profesional:</strong> Acting de personaje antropomorfo y navegación en entornos cerrados para resolver necesidades cinematográficas e interactivas.</li>
-        </ul>
 
         <div class="sena-sub-title">2.3 Objetivo General</div>
         <p style="font-size: 9pt; margin-bottom: 1rem; background: #f0fdf4; padding: 10px; border-left: 3px solid #16a34a;">
-          Elaborar un portafolio de contenidos 3D que integre macroproyectos audiovisuales e interactivos para la visualización de productos y servicios, con el fin de proyectar el perfil profesional del aprendiz y satisfacer las necesidades del sector productivo.
+          ${this.escapeHtml(pf.objetivos.general)}
         </p>
 
         <div class="sena-sub-title">2.4 Objetivos Específicos</div>
         <ul style="margin-left: 1.5rem; margin-bottom: 1rem; font-size: 8.5pt;">
-          <li>Crear un product shot animado que demuestre el dominio de las técnicas de modelado, texturizado, iluminación y animación de cámara, con el fin de visualizar productos comerciales de alta calidad.</li>
-          <li>Producir una animación de acting de un personaje que aplique los principios de animación y rigging, con el fin de proyectar habilidades en la narrativa y la expresión de personajes.</li>
-          <li>Desarrollar una simulación física (fluidos, dinámicas o partículas) que aplique conocimientos técnicos para generar efectos visuales y solucionar necesidades de visualización complejas.</li>
-          <li>Integrar un elemento 3D en un video real a través de la postproducción y efectos visuales (VFX), con el fin de demostrar competencias en la composición y el matchmoving.</li>
-          <li>Elaborar un conjunto de assets 3D optimizados para productos interactivos, con el fin de aplicar conocimientos en el desarrollo de videojuegos y experiencias de realidad extendida (XR).</li>
-          <li>Ensamblar y editar el material audiovisual de los proyectos para generar un reel profesional que represente el perfil y las habilidades del aprendiz.</li>
+          ${(pf.objetivos.especificos || []).map(o => `<li>${this.escapeHtml(o)}</li>`).join('')}
         </ul>
 
-        <div class="sena-sub-title">2.5 Alcance, Beneficiarios, Impacto y Riesgos</div>
+        <div class="sena-sub-title">2.5 Alcance, Beneficiarios e Impactos</div>
         <table class="sena-table">
           <tr>
-            <td style="width: 25%; font-weight: bold;">2.5.1 Beneficiarios:</td>
-            <td><strong>Aprendices:</strong> Portafolio profesional de alta calidad y empleabilidad inmediata.<br><strong>Sector Productivo:</strong> Acceso a talento local calificado en tecnologías 3D.<br><strong>SENA:</strong> Fortalecimiento institucional de vanguardia en la Industria 4.0.</td>
+            <td style="width: 25%; font-weight: bold;">Beneficiarios Directos:</td>
+            <td>${this.escapeHtml(pf.alcance.beneficiarios_directos)}</td>
           </tr>
           <tr>
-            <td style="font-weight: bold;">2.5.2 Impactos:</td>
-            <td><strong>Social:</strong> Inclusión digital y empleabilidad de alto valor técnico.<br><strong>Económico:</strong> Reducción de costos de importación de servicios 3D para empresas nacionales.<br><strong>Ambiental:</strong> Optimización de recursos y prototipado digital antes de manufactura física.<br><strong>Tecnológico:</strong> Asimilación de inteligencia artificial y gemelos digitales en flujos productivos.</td>
+            <td style="font-weight: bold;">Beneficiarios Indirectos:</td>
+            <td>${this.escapeHtml(pf.alcance.beneficiarios_indirectos)}</td>
           </tr>
           <tr>
-            <td style="font-weight: bold;">2.5.3 Riesgos y Soluciones:</td>
-            <td><strong>Obsolescencia tecnológica:</strong> Capacitación en principios fundamentales agnósticos al software y vigilancia tecnológica continua.<br><strong>Tiempos de render y cómputo:</strong> Motores en tiempo real, optimización de pases de difusión asistida por IA y playblasts para previsualización.</td>
-          </tr>
-          <tr>
-            <td style="font-weight: bold;">2.5.4 Productos por Fase:</td>
+            <td style="font-weight: bold;">Impacto Social y Económico:</td>
             <td>
-              <strong>FASE 1 (PLANEAR):</strong> Biblia técnica, guion técnico, storyboards, hojas de modelo (model sheets) y clasificación de rutas (directa vs previs 3D).<br>
-              <strong>FASE 2, 3, 4 (HACER):</strong> Modelos CAD paramétricos, prototipos 3D impresos/simulados, coordinación BIM (IFC), mallas de escultura y retopología en quads, texturizado PBR y armaduras de deformación (Rigging/MoCap).<br>
-              <strong>FASE 5, 6 (VERIFICAR):</strong> Secuencias de video estilizadas con control cinematográfico y difusión 3D, escenas optimizadas en motor gráfico a 60 FPS estables, composición nodal y montaje de audio sincronizado.<br>
-              <strong>FASE 7 (ACTUAR):</strong> Aplicación ejecutable interactiva compilada de Gemelo Digital multi-plataforma (desktop/web/VR), simulador 3D explorable y portafolio / reel profesional consolidado.
+              <strong>Social:</strong> ${this.escapeHtml(pf.alcance.impacto_social)}<br>
+              <strong>Económico:</strong> ${this.escapeHtml(pf.alcance.impacto_economico)}
+            </td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold;">Impacto Ambiental y Tecnológico:</td>
+            <td>
+              <strong>Ambiental:</strong> ${this.escapeHtml(pf.alcance.impacto_ambiental)}<br>
+              <strong>Tecnológico:</strong> ${this.escapeHtml(pf.alcance.impacto_tecnologico)}
             </td>
           </tr>
         </table>
