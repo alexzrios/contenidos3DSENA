@@ -8,6 +8,38 @@ export class CurriculumTable {
     this.container = document.getElementById(containerId);
     this.filterType = 'all'; // all, tecnico, transversal (para trimestres)
     this.competenciaFilter = 'all'; // all, tecnico, transversal (para matriz)
+    this.isCompetenciasExpanded = true; // Estado del acordeón de competencias
+  }
+
+  toggleCompetenciasAccordion() {
+    this.isCompetenciasExpanded = !this.isCompetenciasExpanded;
+    const body = document.getElementById('competenciasAccordionBody');
+    const chevron = document.getElementById('competenciasChevron');
+    const filters = document.getElementById('competenciasHeaderFilters');
+    const badge = document.getElementById('competenciasCollapsedBadge');
+    const headerBorder = document.getElementById('competenciasHeaderBox');
+
+    if (body) {
+      body.style.display = this.isCompetenciasExpanded ? 'block' : 'none';
+    }
+    if (chevron) {
+      chevron.innerHTML = this.isCompetenciasExpanded ? '▲' : '▼';
+    }
+    const btnToggle = document.getElementById('btnToggleCompetencias');
+    if (btnToggle) {
+      btnToggle.title = this.isCompetenciasExpanded ? 'Contraer sección (subir)' : 'Desplegar sección (bajar)';
+    }
+    if (filters) {
+      filters.style.display = this.isCompetenciasExpanded ? 'flex' : 'none';
+    }
+    if (badge) {
+      badge.style.display = this.isCompetenciasExpanded ? 'none' : 'inline-flex';
+    }
+    if (headerBorder) {
+      headerBorder.style.borderBottom = this.isCompetenciasExpanded ? '1px solid var(--border-color)' : 'none';
+      headerBorder.style.marginBottom = this.isCompetenciasExpanded ? '1.25rem' : '0';
+      headerBorder.style.paddingBottom = this.isCompetenciasExpanded ? '0.85rem' : '0';
+    }
   }
 
   escapeHtml(str) {
@@ -95,32 +127,45 @@ export class CurriculumTable {
       <!-- SECCIÓN 1: MATRIZ DE COMPETENCIAS LABORALES (ORDENADAS EN TÉCNICAS Y TRANSVERSALES) -->
       <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2.25rem; backdrop-filter: blur(10px);">
         
-        <!-- Header de Competencias -->
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.85rem;">
-          <div>
+        <!-- Header de Competencias con Toggle de Acordeón -->
+        <div id="competenciasHeaderBox" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: ${this.isCompetenciasExpanded ? '1.25rem' : '0'}; border-bottom: ${this.isCompetenciasExpanded ? '1px solid var(--border-color)' : 'none'}; padding-bottom: ${this.isCompetenciasExpanded ? '0.85rem' : '0'}; transition: all 0.25s ease;">
+          <div style="cursor: pointer; flex: 1;" onclick="window.app.curriculumTable.toggleCompetenciasAccordion()">
             <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
               <span class="badge cyan" style="font-size: 0.82rem; padding: 3px 9px;">Normas de Competencia Laboral</span>
               <h2 style="font-size: 1.4rem; font-weight: 800; margin: 0; color: #fff;">🏛️ Matriz de Competencias del Programa</h2>
+              <span id="competenciasCollapsedBadge" style="display: ${this.isCompetenciasExpanded ? 'none' : 'inline-flex'}; font-size: 0.75rem; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); padding: 3px 9px; border-radius: 4px; font-weight: 700;">
+                15 Competencias (6 Técnicas · 9 Transversales) · 3.120 h
+              </span>
             </div>
             <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0.35rem 0 0 0;">
               Clasificación oficial en <strong>Competencias Específicas (Técnicas 3D)</strong> y <strong>Competencias Básicas (Transversales y Claves)</strong>, con sus RAPs y Fases asociadas.
             </p>
           </div>
 
-          <!-- Filtros de Competencias -->
-          <div style="display: flex; gap: 0.35rem; background: rgba(15, 23, 42, 0.6); padding: 0.3rem; border-radius: 8px; border: 1px solid var(--border-color); flex-wrap: wrap;">
-            <button type="button" class="btn-action comp-filter-btn primary" data-filter="all" onclick="window.app.curriculumTable.filterCompetencias('all')" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 700; background: linear-gradient(135deg, #0284c7, #2563eb); border-color: #38bdf8; color: #fff;">
-              Todas (15)
-            </button>
-            <button type="button" class="btn-action comp-filter-btn" data-filter="tecnico" onclick="window.app.curriculumTable.filterCompetencias('tecnico')" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 700; color: #38bdf8; background: rgba(15, 23, 42, 0.6); border-color: rgba(148, 163, 184, 0.2);">
-              🛠️ Técnicas (6)
-            </button>
-            <button type="button" class="btn-action comp-filter-btn" data-filter="transversal" onclick="window.app.curriculumTable.filterCompetencias('transversal')" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 700; color: #c084fc; background: rgba(15, 23, 42, 0.6); border-color: rgba(148, 163, 184, 0.2);">
-              🌱 Transversales (9)
+          <!-- Controles de la derecha: Filtros y Botón Acordeón -->
+          <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+            <!-- Filtros de Competencias -->
+            <div id="competenciasHeaderFilters" style="display: ${this.isCompetenciasExpanded ? 'flex' : 'none'}; gap: 0.35rem; background: rgba(15, 23, 42, 0.6); padding: 0.3rem; border-radius: 8px; border: 1px solid var(--border-color); flex-wrap: wrap;">
+              <button type="button" class="btn-action comp-filter-btn primary" data-filter="all" onclick="window.app.curriculumTable.filterCompetencias('all')" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 700; background: linear-gradient(135deg, #0284c7, #2563eb); border-color: #38bdf8; color: #fff;">
+                Todas (15)
+              </button>
+              <button type="button" class="btn-action comp-filter-btn" data-filter="tecnico" onclick="window.app.curriculumTable.filterCompetencias('tecnico')" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 700; color: #38bdf8; background: rgba(15, 23, 42, 0.6); border-color: rgba(148, 163, 184, 0.2);">
+                🛠️ Técnicas (6)
+              </button>
+              <button type="button" class="btn-action comp-filter-btn" data-filter="transversal" onclick="window.app.curriculumTable.filterCompetencias('transversal')" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 700; color: #c084fc; background: rgba(15, 23, 42, 0.6); border-color: rgba(148, 163, 184, 0.2);">
+                🌱 Transversales (9)
+              </button>
+            </div>
+
+            <!-- Botón Acordeón Expandir / Colapsar -->
+            <button type="button" id="btnToggleCompetencias" class="btn-action" onclick="window.app.curriculumTable.toggleCompetenciasAccordion()" title="Expandir o Colapsar Matriz de Competencias" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; font-size: 1rem; cursor: pointer; transition: all 0.25s ease;">
+              <span id="competenciasChevron" style="display: inline-block; font-size: 0.95rem; font-weight: bold; line-height: 1;">${this.isCompetenciasExpanded ? '▲' : '▼'}</span>
             </button>
           </div>
         </div>
 
+        <!-- CUERPO DEL ACORDEÓN DE COMPETENCIAS (KPIs + REJILLA) -->
+        <div id="competenciasAccordionBody" style="display: ${this.isCompetenciasExpanded ? 'block' : 'none'}; transition: all 0.3s ease;">
         <!-- Tarjetas de Resumen Numérico -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
           <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 0.85rem 1rem;">
@@ -219,6 +264,7 @@ export class CurriculumTable {
           }).join('')}
         </div>
 
+        </div> <!-- Fin de #competenciasAccordionBody -->
       </div>
     `;
   }

@@ -392,6 +392,16 @@ export class DocumentBuilder {
       const codTrans = mTrans ? mTrans[1] : '';
       const nomTrans = mTrans ? mTrans[2] : item.competencia_transversal;
 
+      const acts = (Array.isArray(item.actividades) && item.actividades.length > 0)
+        ? item.actividades
+        : [item.actividad_proyecto || 'Desarrollar y optimizar los activos según especificaciones de producción.'];
+
+      const actsHtml = acts.length === 1
+        ? this.escapeHtml(acts[0])
+        : '<ul style="margin: 0; padding-left: 1.1rem; line-height: 1.35;">' +
+            acts.map(a => '<li style="margin-bottom: 2px;">' + this.escapeHtml(a) + '</li>').join('') +
+          '</ul>';
+
       const bg = idx % 2 === 1 ? '#f8fafc' : '#ffffff';
 
       return `
@@ -402,10 +412,11 @@ export class DocumentBuilder {
             </td>
           ` : ''}
           <td style="border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; font-size: 8pt; text-align: justify; line-height: 1.35;">
-            ${this.escapeHtml(item.actividad_proyecto)} <strong style="color: #64748b; font-size: 7.5pt; white-space: nowrap;">(48 hrs)</strong>
+            ${actsHtml}
+            <div style="margin-top: 4px; font-size: 7.2pt; color: #64748b; font-weight: bold;">(${item.horas || 96} hrs · Trimestre ${item.trimestre || 'I'})</div>
           </td>
           <td style="border: 1px solid #cbd5e1; padding: 6px 4px; text-align: center; vertical-align: top; font-weight: bold; font-size: 8pt; color: #0369a1;">
-            <span style="display: inline-block; padding: 2px 5px; background: #e0f2fe; border-radius: 4px; border: 1px solid #bae6fd; font-size: 7.5pt;">${this.escapeHtml(item.guia_id)}</span>
+            <span style="display: inline-block; padding: 2px 6px; background: #e0f2fe; border-radius: 4px; border: 1px solid #bae6fd; font-size: 7.8pt;">${this.escapeHtml(item.guia_id)}</span>
           </td>
           <td style="border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; font-size: 7.5pt; line-height: 1.3;">
             ${codTec ? `<strong style="display: block; color: #0f172a; margin-bottom: 2px;">${this.escapeHtml(codTec)}</strong>` : ''}
@@ -426,7 +437,7 @@ export class DocumentBuilder {
     }).join('');
   }
 
-  generateGuiaHTML(rapKey, centro, instructor) {
+    generateGuiaHTML(rapKey, centro, instructor) {
     const rap = RAPS_TECNICOS[rapKey] || RAPS_TECNICOS['RAP-01'];
     let curriculo = CURRICULO_TECNOLOGO;
     if (this.currentProgram === 'modelado') curriculo = CURRICULO_MODELADO;
@@ -443,9 +454,16 @@ export class DocumentBuilder {
     // RAPs transversales vinculados
     const activeTransversales = this.getActiveTransversales(rapKey);
     const actsProyecto = getActividadesProyectoForRap(rapKey);
-    const actividadProyectoTxt = actsProyecto.length > 0
-      ? actsProyecto.map(a => '<strong>[' + a.guia_id + ']</strong> ' + this.escapeHtml(a.actividad_proyecto)).join('<br>')
-      : 'Desarrollar y optimizar los activos 3D, cinemáticos o interactivos según especificaciones de producción y estándares técnicos.';
+    let actividadProyectoTxt = '';
+    if (actsProyecto.length === 1) {
+      actividadProyectoTxt = this.escapeHtml(actsProyecto[0].actividad_proyecto);
+    } else if (actsProyecto.length > 1) {
+      actividadProyectoTxt = '<ul style="margin: 0.3rem 0 0 0; padding-left: 1.25rem; font-size: 11pt; line-height: 1.45;">' +
+        actsProyecto.map(a => '<li>' + this.escapeHtml(a.actividad_proyecto) + '</li>').join('') +
+        '</ul>';
+    } else {
+      actividadProyectoTxt = 'Desarrollar y optimizar los activos 3D, cinemáticos o interactivos según especificaciones de producción y estándares técnicos.';
+    }
     const horasTecnicas = rap.horas || 144;
     const horasTransversales = activeTransversales.reduce((acc, t) => acc + (t.horas || 48), 0);
     const totalHorasGuia = horasTecnicas + horasTransversales;
@@ -1941,9 +1959,9 @@ export class DocumentBuilder {
         </table>
 
         <!-- 3. PLANEACIÓN DEL PROYECTO (TABLA OFICIAL SENA GFPI-F-016) -->
-        <div class="sena-section-title">3. PLANEACIÓN DEL PROYECTO (39 GUÍAS CONSECUTIVAS — PIPELINE TECNOLÓGICO)</div>
+        <div class="sena-section-title">3. PLANEACIÓN DEL PROYECTO (16 GUÍAS DE APRENDIZAJE — PIPELINE TECNOLÓGICO)</div>
         <p style="font-size: 8.5pt; color: #475569; margin-bottom: 0.75rem;">
-          Secuencia cronológica del Tecnólogo (7 trimestres lectivos). Cada fila corresponde a <strong>1 Guía de Aprendizaje consecutiva de 48 horas (1 crédito formativo)</strong>.
+          Secuencia cronológica del Tecnólogo (7 trimestres lectivos). Cada fila corresponde a <strong>1 Guía de Aprendizaje oficial (16 RAPs técnicos del programa)</strong> con sus actividades del proyecto articuladas.
         </p>
         <table class="sena-table" style="font-size: 7.5pt; width: 100%; border-collapse: collapse; margin-bottom: 1.5rem;">
           <thead>

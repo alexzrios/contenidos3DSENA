@@ -168,6 +168,72 @@ export class ProyectoFormativoView {
     }
   }
 
+  addActividadToGuia(guiaIdx) {
+    this.collectCurrentInputs();
+    const pf = getProyectoFormativo();
+    const guia = pf.planeacion_proyecto && pf.planeacion_proyecto[guiaIdx];
+    if (!guia) return;
+    if (!Array.isArray(guia.actividades)) {
+      guia.actividades = guia.actividad_proyecto ? [guia.actividad_proyecto] : [];
+    }
+    guia.actividades.push('Definir y ejecutar la nueva actividad técnica de acuerdo con los requerimientos del proyecto formativo.');
+    guia.actividad_proyecto = guia.actividades[0];
+    saveProyectoFormativo(pf);
+    this.activeSection = 10;
+    this.render();
+    const el = document.getElementById('editorSec_10');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (window.app && window.app.showToast) {
+      window.app.showToast(`➕ Nueva actividad añadida a la ${guia.guia_label || 'Guía'} (${guia.guia_id})`);
+    }
+  }
+
+  removeActividadFromGuia(guiaIdx, actIdx) {
+    this.collectCurrentInputs();
+    const pf = getProyectoFormativo();
+    const guia = pf.planeacion_proyecto && pf.planeacion_proyecto[guiaIdx];
+    if (!guia || !Array.isArray(guia.actividades)) return;
+    if (guia.actividades.length <= 1) {
+      if (window.app && window.app.showToast) {
+        window.app.showToast('⚠️ La guía debe contener al menos 1 actividad de proyecto.');
+      }
+      return;
+    }
+    guia.actividades.splice(actIdx, 1);
+    guia.actividad_proyecto = guia.actividades[0] || '';
+    saveProyectoFormativo(pf);
+    this.activeSection = 10;
+    this.render();
+    const el = document.getElementById('editorSec_10');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (window.app && window.app.showToast) {
+      window.app.showToast(`🗑️ Actividad eliminada de la ${guia.guia_label || 'Guía'} (${guia.guia_id})`);
+    }
+  }
+
+  collectCurrentInputs() {
+    const pf = getProyectoFormativo();
+    if (pf.planeacion_proyecto && Array.isArray(pf.planeacion_proyecto)) {
+      pf.planeacion_proyecto.forEach((p, idx) => {
+        const elCompTec = document.getElementById(`pfPlanCompTec_${idx}`);
+        const elRapTec = document.getElementById(`pfPlanRapTec_${idx}`);
+        const elCompTrans = document.getElementById(`pfPlanCompTrans_${idx}`);
+        const elRapTrans = document.getElementById(`pfPlanRapTrans_${idx}`);
+        if (elCompTec) p.competencia_tecnica = elCompTec.value.trim();
+        if (elRapTec) p.rap_tecnico = elRapTec.value.trim();
+        if (elCompTrans) p.competencia_transversal = elCompTrans.value.trim();
+        if (elRapTrans) p.rap_transversal = elRapTrans.value.trim();
+
+        const actInputs = document.querySelectorAll(`.pf-act-input[data-guia-idx="${idx}"]`);
+        if (actInputs && actInputs.length > 0) {
+          p.actividades = Array.from(actInputs).map(inp => inp.value.trim()).filter(Boolean);
+          p.actividad_proyecto = p.actividades[0] || '';
+        }
+      });
+      saveProyectoFormativo(pf);
+    }
+  }
+
   filterPlaneacionPhase(phase) {
     const cards = document.querySelectorAll('.planeacion-card');
     const buttons = document.querySelectorAll('.planeacion-filter-btn');
@@ -239,6 +305,16 @@ export class ProyectoFormativoView {
       const codTrans = mTrans ? mTrans[1] : '';
       const nomTrans = mTrans ? mTrans[2] : item.competencia_transversal;
 
+      const acts = (Array.isArray(item.actividades) && item.actividades.length > 0)
+        ? item.actividades
+        : [item.actividad_proyecto || 'Desarrollar y optimizar los activos según especificaciones de producción.'];
+
+      const actsHtml = acts.length === 1
+        ? this.escapeHtml(acts[0])
+        : '<ul style="margin: 0; padding-left: 1.1rem; line-height: 1.35;">' +
+            acts.map(a => '<li style="margin-bottom: 2px;">' + this.escapeHtml(a) + '</li>').join('') +
+          '</ul>';
+
       const bg = idx % 2 === 1 ? '#f8fafc' : '#ffffff';
 
       return `
@@ -249,10 +325,11 @@ export class ProyectoFormativoView {
             </td>
           ` : ''}
           <td style="border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; font-size: 8pt; text-align: justify; line-height: 1.35;">
-            ${this.escapeHtml(item.actividad_proyecto)} <strong style="color: #64748b; font-size: 7.5pt; white-space: nowrap;">(48 hrs)</strong>
+            ${actsHtml}
+            <div style="margin-top: 4px; font-size: 7.2pt; color: #64748b; font-weight: bold;">(${item.horas || 96} hrs · Trimestre ${item.trimestre || 'I'})</div>
           </td>
           <td style="border: 1px solid #cbd5e1; padding: 6px 4px; text-align: center; vertical-align: top; font-weight: bold; font-size: 8pt; color: #0369a1;">
-            <span style="display: inline-block; padding: 2px 5px; background: #e0f2fe; border-radius: 4px; border: 1px solid #bae6fd; font-size: 7.5pt;">${this.escapeHtml(item.guia_id)}</span>
+            <span style="display: inline-block; padding: 2px 6px; background: #e0f2fe; border-radius: 4px; border: 1px solid #bae6fd; font-size: 7.8pt;">${this.escapeHtml(item.guia_id)}</span>
           </td>
           <td style="border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; font-size: 7.5pt; line-height: 1.3;">
             ${codTec ? `<strong style="display: block; color: #0f172a; margin-bottom: 2px;">${this.escapeHtml(codTec)}</strong>` : ''}
@@ -273,7 +350,7 @@ export class ProyectoFormativoView {
     }).join('');
   }
 
-  renderEditorForm(pf) {
+    renderEditorForm(pf) {
     const info = pf.info_basica || {};
     const mp1 = (pf.macroproyectos && pf.macroproyectos[0]) || {};
     const mp2 = (pf.macroproyectos && pf.macroproyectos[1]) || {};
@@ -731,42 +808,42 @@ export class ProyectoFormativoView {
           ${this.renderNavFooter(9, 'Valoración Productiva')}
         </div>
 
-        <!-- 10. PLANEACIÓN DEL PROYECTO (PANEL 10) -->
+        <!-- 10. PLANEACIÓN DEL PROYECTO (PANEL 10 - 16 GUÍAS OFICIALES) -->
         <div class="editor-section-panel" id="editorSec_10" data-sec="10" style="${isPanelVisible(10)}; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; flex-wrap: wrap; gap: 0.75rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
               <span class="badge amber">Sección 10 (3.0)</span>
-              <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">🗓️ 3. Planeación del Proyecto (Actividades, Fases, Competencias y Guías)</span>
+              <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">🗓️ 3. Planeación del Proyecto (16 Guías de Aprendizaje Oficiales)</span>
             </div>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">39 Guías Consecutivas — Pipeline Tecnológico</span>
+            <span style="font-size: 0.78rem; color: #38bdf8; font-weight: 700;">16 Guías de Aprendizaje — 16 RAPs Técnicos</span>
           </div>
 
           <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.5;">
-            Configure y personalice las <strong>39 actividades del proyecto formativo</strong> y asocie las competencias técnicas y transversales a cada Fase. Cada actividad alimenta automáticamente el campo <em>"Actividad de proyecto"</em> en las Guías de Aprendizaje relacionadas del Generador SENA.
+            Configure y personalice las <strong>16 Guías de Aprendizaje oficiales</strong> del programa. Cada guía agrupa sus competencias y sus <strong>actividades del proyecto técnico</strong>. Puede <strong>agregar, editar o eliminar actividades</strong> para cada guía según los procesos requeridos; los cambios alimentan automáticamente las Guías de Aprendizaje del Generador SENA.
           </p>
 
           <!-- Filtros de Fase -->
           <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; flex-wrap: wrap; align-items: center;">
             <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; margin-right: 0.5rem;">Filtrar por Fase:</span>
             <button type="button" class="btn-action planeacion-filter-btn active" data-phase="ALL" onclick="window.app.proyectoView.filterPlaneacionPhase('ALL')" style="font-size: 0.78rem; padding: 0.35rem 0.85rem; border-radius: 6px; background: rgba(56, 189, 248, 0.25); border: 1px solid #38bdf8; color: #f8fafc; font-weight: 700;">
-              Todas (39)
+              Todas (16)
             </button>
             <button type="button" class="btn-action planeacion-filter-btn" data-phase="PLANEAR" onclick="window.app.proyectoView.filterPlaneacionPhase('PLANEAR')" style="font-size: 0.78rem; padding: 0.35rem 0.85rem; border-radius: 6px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); color: #34d399; font-weight: 700;">
-              🟢 PLANEAR (9)
+              🟢 PLANEAR (3)
             </button>
             <button type="button" class="btn-action planeacion-filter-btn" data-phase="HACER" onclick="window.app.proyectoView.filterPlaneacionPhase('HACER')" style="font-size: 0.78rem; padding: 0.35rem 0.85rem; border-radius: 6px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); color: #38bdf8; font-weight: 700;">
-              🔵 HACER (14)
+              🔵 HACER (9)
             </button>
             <button type="button" class="btn-action planeacion-filter-btn" data-phase="VERIFICAR" onclick="window.app.proyectoView.filterPlaneacionPhase('VERIFICAR')" style="font-size: 0.78rem; padding: 0.35rem 0.85rem; border-radius: 6px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); color: #fbbf24; font-weight: 700;">
-              🟡 VERIFICAR (12)
+              🟡 VERIFICAR (3)
             </button>
             <button type="button" class="btn-action planeacion-filter-btn" data-phase="ACTUAR" onclick="window.app.proyectoView.filterPlaneacionPhase('ACTUAR')" style="font-size: 0.78rem; padding: 0.35rem 0.85rem; border-radius: 6px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); color: #c084fc; font-weight: 700;">
-              🟣 ACTUAR (4)
+              🟣 ACTUAR (1)
             </button>
           </div>
 
-          <!-- Listado de las 39 actividades -->
-          <div id="planeacionCardsContainer" style="display: flex; flex-direction: column; gap: 0.85rem;">
+          <!-- Listado de las 16 Guías de Aprendizaje -->
+          <div id="planeacionCardsContainer" style="display: flex; flex-direction: column; gap: 1rem;">
             ${(pf.planeacion_proyecto || PROYECTO_FORMATIVO_DEFAULT.planeacion_proyecto).map((item, idx) => {
               const faseColors = {
                 PLANEAR: 'background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399',
@@ -776,32 +853,42 @@ export class ProyectoFormativoView {
               };
               const phaseBadge = faseColors[item.fase] || faseColors.PLANEAR;
 
+              const actsList = (Array.isArray(item.actividades) && item.actividades.length > 0)
+                ? item.actividades
+                : [item.actividad_proyecto || 'Desarrollar y optimizar los activos según especificaciones de producción.'];
+
               return `
-                <div class="planeacion-card" data-phase="${item.fase}" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 8px; padding: 1.15rem; transition: border-color 0.2s;">
+                <div class="planeacion-card" data-phase="${item.fase}" style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 10px; padding: 1.25rem; transition: border-color 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
                   
                   <!-- Top bar -->
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                      <span style="font-weight: 800; font-size: 0.82rem; padding: 2px 8px; border-radius: 4px; background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #38bdf8;">
-                        ${this.escapeHtml(item.guia_label || item.guia_id)} (${item.guia_id})
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.65rem;">
+                    <div style="display: flex; gap: 0.55rem; align-items: center; flex-wrap: wrap;">
+                      <span style="font-weight: 800; font-size: 0.85rem; padding: 3px 9px; border-radius: 5px; background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #38bdf8;">
+                        ${this.escapeHtml(item.guia_label || ('Guía ' + item.numero))} (${item.guia_id})
                       </span>
-                      <span style="font-weight: 700; font-size: 0.75rem; padding: 2px 7px; border-radius: 4px; ${phaseBadge};">
+                      <span style="font-weight: 700; font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; ${phaseBadge};">
                         ${this.escapeHtml(item.fase)}
                       </span>
-                      <span style="font-size: 0.75rem; color: var(--text-muted); background: rgba(255, 255, 255, 0.05); padding: 2px 6px; border-radius: 4px;">
+                      <span style="font-size: 0.75rem; color: var(--text-muted); background: rgba(255, 255, 255, 0.05); padding: 2px 7px; border-radius: 4px;">
                         Trimestre ${this.escapeHtml(item.trimestre)}
                       </span>
+                      <span style="font-size: 0.75rem; color: #38bdf8; font-weight: 700; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); padding: 2px 7px; border-radius: 4px;">
+                        🎯 ${item.rap_tecnico_id || ''}
+                      </span>
                     </div>
-                    <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">⏱️ 48 Horas (1 Crédito)</span>
+
+                    <div style="font-size: 0.78rem; color: #cbd5e1; font-weight: 600;">
+                      ⏱️ ${item.horas || 96} Horas (${Math.round((item.horas || 96) / 48)} Crédito${Math.round((item.horas || 96) / 48) > 1 ? 's' : ''})
+                    </div>
                   </div>
 
-                  <!-- Selectores de Competencias y RAPs (2 columnas editables) -->
-                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0.85rem; margin-bottom: 0.85rem;">
+                  <!-- Competencia Técnica y Transversal vinculadas -->
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1rem;">
                     
-                    <!-- 3.3 Componente Específico (Técnico 3D) -->
-                    <div style="background: rgba(14, 165, 233, 0.06); border: 1px solid rgba(14, 165, 233, 0.25); border-radius: 6px; padding: 0.75rem 0.85rem;">
+                    <!-- 3.3 Componente Específico (Técnica) -->
+                    <div style="background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 6px; padding: 0.75rem 0.85rem;">
                       <label class="form-label" style="font-size: 0.78rem; color: #38bdf8; font-weight: 700; margin-bottom: 0.25rem;">
-                        🎯 3.3 Competencia Técnica (Específica):
+                        🛠️ 3.3 Competencia Técnica (Específica):
                       </label>
                       <select id="pfPlanCompTec_${idx}" class="form-select" style="font-size: 0.78rem; margin-bottom: 0.4rem; border-color: rgba(56, 189, 248, 0.35); background: rgba(15, 23, 42, 0.85); color: #f8fafc; font-weight: 600;">
                         ${tecnicas.map(c => {
@@ -812,7 +899,7 @@ export class ProyectoFormativoView {
                       <label class="form-label" style="font-size: 0.72rem; color: #cbd5e1; font-weight: 600; margin-bottom: 0.2rem;">
                         Denominación RAP Técnico:
                       </label>
-                      <input type="text" id="pfPlanRapTec_${idx}" class="form-input" style="font-size: 0.78rem; padding: 4px 8px; border-color: rgba(56, 189, 248, 0.25);" value="${this.escapeHtml(item.rap_tecnico)}">
+                      <input type="text" id="pfPlanRapTec_${idx}" class="form-input" style="font-size: 0.78rem; padding: 4px 8px; border-color: rgba(56, 189, 248, 0.25);" value="${this.escapeHtml(item.rap_tecnico || '')}">
                     </div>
 
                     <!-- 3.4 Componente Básico (Transversal / Clave) -->
@@ -835,15 +922,46 @@ export class ProyectoFormativoView {
 
                   </div>
 
-                  <!-- 3.2 Actividad del Proyecto -->
-                  <div>
-                    <label class="form-label" style="font-size: 0.8rem; color: #f8fafc; font-weight: 700; margin-bottom: 0.25rem;">
-                      3.2 Actividad del Proyecto (Verbo en infinitivo - Objeto - Condición):
-                    </label>
-                    <textarea id="pfPlanAct_${idx}" class="form-input" rows="2" style="font-size: 0.86rem; line-height: 1.45; font-weight: 500; border-color: rgba(56, 189, 248, 0.3);">${this.escapeHtml(item.actividad_proyecto)}</textarea>
-                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">
-                      🔗 Enlaza y actualiza automáticamente la Guía de Aprendizaje ${item.guia_label}.
-                    </span>
+                  <!-- 3.2 Bloque Interactivo de Actividades de Proyecto de esta Guía -->
+                  <div style="background: rgba(11, 19, 41, 0.6); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 0.9rem 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; flex-wrap: wrap; gap: 0.5rem;">
+                      <label class="form-label" style="font-size: 0.82rem; color: #f8fafc; font-weight: 700; margin: 0;">
+                        3.2 Actividades del Proyecto pertenecientes a la ${item.guia_label || item.guia_id}:
+                      </label>
+                      <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 600;">
+                        ${actsList.length} activida${actsList.length > 1 ? 'des' : 'd'} vinculada${actsList.length > 1 ? 's' : ''}
+                      </span>
+                    </div>
+
+                    <!-- Lista de Textareas de cada Actividad -->
+                    <div id="guiaActsContainer_${idx}" style="display: flex; flex-direction: column; gap: 0.65rem;">
+                      ${actsList.map((actTxt, actIdx) => `
+                        <div class="actividad-item-card" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 6px; padding: 0.65rem 0.85rem;">
+                          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: #38bdf8;">
+                              • Actividad ${actIdx + 1} de la ${item.guia_id}:
+                            </span>
+                            ${actsList.length > 1 ? `
+                              <button type="button" class="btn-action" onclick="window.app.proyectoView.removeActividadFromGuia(${idx}, ${actIdx})" title="Eliminar actividad de esta guía" style="color: #f87171; border-color: rgba(248, 113, 113, 0.3); padding: 2px 7px; font-size: 0.72rem; border-radius: 4px; cursor: pointer;">
+                                🗑️ Eliminar
+                              </button>
+                            ` : ''}
+                          </div>
+                          <textarea class="form-input pf-act-input" data-guia-idx="${idx}" data-act-idx="${actIdx}" rows="2" style="font-size: 0.85rem; line-height: 1.45; font-weight: 500; border-color: rgba(56, 189, 248, 0.3); width: 100%;">${this.escapeHtml(actTxt)}</textarea>
+                        </div>
+                      `).join('')}
+                    </div>
+
+                    <!-- Botón para Agregar Actividad a esta Guía -->
+                    <div style="margin-top: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                      <button type="button" class="btn-action" onclick="window.app.proyectoView.addActividadToGuia(${idx})" style="background: rgba(56, 189, 248, 0.1); border: 1px dashed #38bdf8; color: #38bdf8; font-weight: 700; font-size: 0.78rem; padding: 0.4rem 0.9rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer;">
+                        <span>➕</span> Agregar otra Actividad a la ${item.guia_label || item.guia_id} (${item.guia_id})
+                      </button>
+                      <span style="font-size: 0.72rem; color: var(--text-muted);">
+                        🔗 Se refleja en la Guía de Aprendizaje ${item.guia_id} del Generador SENA.
+                      </span>
+                    </div>
+
                   </div>
 
                 </div>
@@ -1019,22 +1137,27 @@ export class ProyectoFormativoView {
       pf.valoracion_productiva.viabilidad_negocio.respuesta = elValVia.value;
     }
 
-    // 10. Planeación del Proyecto (39 actividades con competencias y RAPs asociados)
-    if (!pf.planeacion_proyecto) {
+    // 10. Planeación del Proyecto (16 Guías de Aprendizaje Oficiales)
+    if (!pf.planeacion_proyecto || pf.planeacion_proyecto.length !== 16) {
       pf.planeacion_proyecto = JSON.parse(JSON.stringify(PROYECTO_FORMATIVO_DEFAULT.planeacion_proyecto));
     }
     pf.planeacion_proyecto.forEach((p, idx) => {
-      const elAct = document.getElementById(`pfPlanAct_${idx}`);
       const elCompTec = document.getElementById(`pfPlanCompTec_${idx}`);
       const elRapTec = document.getElementById(`pfPlanRapTec_${idx}`);
       const elCompTrans = document.getElementById(`pfPlanCompTrans_${idx}`);
       const elRapTrans = document.getElementById(`pfPlanRapTrans_${idx}`);
 
-      if (elAct) p.actividad_proyecto = elAct.value.trim();
       if (elCompTec) p.competencia_tecnica = elCompTec.value.trim();
       if (elRapTec) p.rap_tecnico = elRapTec.value.trim();
       if (elCompTrans) p.competencia_transversal = elCompTrans.value.trim();
       if (elRapTrans) p.rap_transversal = elRapTrans.value.trim();
+
+      // Recolectar lista de actividades dinámicas de esta guía
+      const actInputs = document.querySelectorAll(`.pf-act-input[data-guia-idx="${idx}"]`);
+      if (actInputs && actInputs.length > 0) {
+        p.actividades = Array.from(actInputs).map(inp => inp.value.trim()).filter(Boolean);
+        p.actividad_proyecto = p.actividades[0] || '';
+      }
     });
 
     saveProyectoFormativo(pf);
@@ -1529,7 +1652,7 @@ export class ProyectoFormativoView {
 
         <!-- 3. PLANEACIÓN DEL PROYECTO (TABLA OFICIAL SENA GFPI-F-016) -->
         <div class="sena-sub-title" style="color: #0f172a; font-size: 10.5pt; font-weight: bold; margin-top: 1.5rem; margin-bottom: 0.4rem;">
-          3. PLANEACIÓN DEL PROYECTO (39 GUÍAS CONSECUTIVAS — PIPELINE TECNOLÓGICO)
+          3. PLANEACIÓN DEL PROYECTO (16 GUÍAS DE APRENDIZAJE — PIPELINE TECNOLÓGICO)
         </div>
         <p style="text-align: justify; margin-bottom: 0.75rem; font-size: 8pt; color: #475569;">
           Secuencia cronológica de ejecución de la formación por fases y guías de aprendizaje consecutivas de 48 horas (1 crédito formativo cada una).
