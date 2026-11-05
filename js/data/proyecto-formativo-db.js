@@ -123,6 +123,85 @@ export const PROYECTO_FORMATIVO_DEFAULT = {
     "impacto_economico": "Reducción de costos para el empresariado colombiano al sustituir importación de servicios digitales y acelerar los tiempos de validación de prototipos.",
     "impacto_ambiental": "Disminución del desperdicio de material físico gracias a la simulación computacional de tolerancias y optimización de infill en manufactura aditiva.",
     "impacto_tecnologico": "Apropiación e investigación aplicada de pipelines híbridos (3D tradicional + redes de difusión + OpenXR + IFC abierto)."
+  },
+  "restricciones_riesgos": [
+    {
+      "id": 1,
+      "nombre": "La obsolescencia tecnológica del software y hardware.",
+      "descripcion": "El campo de la animación 3D avanza a un ritmo acelerado. Las herramientas, plugins y pipelines de producción pueden volverse obsoletos en poco tiempo. Si el equipamiento o el software utilizado en el proyecto no se actualizan, los productos finales podrían no cumplir con los estándares de la industria, afectando la competitividad del portafolio del aprendiz.",
+      "alternativa_solucion": "Se implementará una estrategia de formación continua y adaptativa. En lugar de depender de una única herramienta, se enseñarán los principios fundamentales detrás de cada proceso (modelado poligonal, rigging, iluminación, etc.) para que el aprendiz pueda migrar fácilmente a nuevas plataformas. Además, se mantendrá una vigilancia tecnológica constante para identificar y adoptar las herramientas más relevantes del mercado, ajustando los contenidos del proyecto según sea necesario."
+    },
+    {
+      "id": 2,
+      "nombre": "Falta de recursos técnicos o de tiempo.",
+      "descripcion": "La producción de contenidos 3D de alta calidad, especialmente simulaciones físicas y renders fotorrealistas, requiere equipos con alta capacidad de procesamiento. Una infraestructura insuficiente podría generar retrasos significativos en los renders y limitar la complejidad de los proyectos, afectando la calidad final del portafolio.",
+      "alternativa_solucion": "Para minimizar este riesgo, se optimizarán los microproyectos para el rendimiento. Se hará énfasis en la eficiencia de la geometría, el uso de texturas optimizadas y la configuración de iluminación para reducir los tiempos de renderizado. En caso de ser necesario, se explorará el uso de granjas de renderizado en la nube para proyectos específicos que demanden una alta carga de procesamiento, garantizando que los aprendices tengan acceso a la capacidad de cómputo necesaria para cumplir con los plazos."
+    },
+    {
+      "id": 3,
+      "nombre": "Falta de conexión con el sector productivo.",
+      "descripcion": "Si el proyecto no logra establecer un vínculo real con las necesidades y expectativas de las empresas, el portafolio resultante, aunque técnicamente sólido, podría no ser relevante para los empleadores.",
+      "alternativa_solucion": "Se buscarán alianzas estratégicas con empresas locales y se invitará a profesionales de la industria a participar como mentores o jurados. Esto permitirá que los proyectos se basen en desafíos reales del mercado, asegurando que los productos finales, además de ser técnicamente correctos, sean pertinentes y atractivos para el sector."
+    }
+  ],
+  "productos_resultados": {
+    "descripcion_general": "Los productos de este proyecto son tangibles, evaluables y directamente relacionados con los objetivos específicos y los microproyectos definidos, asegurando que cada fase del proceso de formación culmine en un resultado concreto que contribuya al portafolio final. A continuación se describen los productos por fase:",
+    "fases": [
+      {
+        "fase": "Fase 1: Preproducción y Conceptualización",
+        "producto": "Documentos de preproducción: Se entregará un documento completo que incluya guiones técnicos y literarios, concept art de personajes y escenarios, storyboards y animatics de cada uno de los microproyectos.",
+        "evaluacion": "Este producto será evaluado en términos de la coherencia narrativa, la viabilidad técnica de las ideas y la claridad de la dirección de arte para la producción."
+      },
+      {
+        "fase": "Fase 2: Producción de Activos 3D",
+        "producto": "Archivos 3D de los microproyectos: Se entregarán los modelos 3D de alta y baja resolución del producto comercial, el personaje y los assets interactivos. Además, se incluirán las simulaciones físicas renderizadas y las escenas de integración de video real (VFX), todas ellas listas para la postproducción.",
+        "evaluacion": "Se verificará la calidad técnica de los modelos (topología, mapeo UV, etc.), la optimización de los assets para entornos interactivos, la fidelidad de las simulaciones y la correcta integración de los elementos 3D con el video real."
+      },
+      {
+        "fase": "Fase 3: Postproducción y Edición",
+        "producto": "Reel profesional de 1:30 minutos: Este será el producto final y principal del proyecto. Será un video editado y musicalizado que integre las mejores tomas de cada uno de los microproyectos en un formato cohesivo y atractivo para el sector productivo. Se incluirá un rótulo con la información del aprendiz y sus datos de contacto.",
+        "evaluacion": "El reel se evaluará por su fluidez, calidad de la edición, sincronización con el audio, y la capacidad de proyectar las habilidades del aprendiz de manera clara y profesional. Este producto es la pieza clave para la presentación en el mercado laboral."
+      }
+    ]
+  },
+  "innovacion_gestion": {
+    "resuelve_necesidad": {
+      "pregunta": "¿El proyecto resuelve una necesidad del sector productivo?",
+      "criterio": "Respuesta que debe estar soportada en la realidad, conocimiento del entorno, estado del arte del sector. Solo tiene dos opciones: Si o No. Debe elegir una de las dos.",
+      "respuesta": "SI"
+    },
+    "mejora_proceso": {
+      "pregunta": "¿El proyecto mejora el proceso/producto/servicio existente?",
+      "criterio": "Efecto o transformación que causa el producto del proyecto en sentido superación, innovación, productividad. Solo tiene dos opciones: Si o No. Debe elegir una de las dos.",
+      "respuesta": "SI"
+    },
+    "nuevas_tecnicas": {
+      "pregunta": "¿El proyecto involucra el uso de nuevas técnicas y tecnologías de proceso?",
+      "criterio": "La incorporación de tecnologías de punto y vanguardia, que dan cuenta del estado del arte del sector en el desarrollo del proyecto. Solo tiene dos opciones: Si o No. Debe elegir una de las dos.",
+      "respuesta": "SI"
+    },
+    "proteccion_industrial": {
+      "pregunta": "¿Los productos finales son susceptibles a protección industrial y/o derechos de autor?",
+      "criterio": "El desarrollo del proyecto refleja una producción de I+D (Investigación y Desarrollo) de manera que se registre el producto como una creación propia, una invención o una construcción que modifica el discurso epistémico. Solo tiene dos opciones: Si o No. Debe elegir una de las dos.",
+      "respuesta": "SI"
+    },
+    "posicionamiento_mercado": {
+      "pregunta": "¿Los productos obtenidos en el proyecto pueden ser posicionados en el mercado?",
+      "criterio": "El producto, la marca, objeto, resultantes del proyecto poseen la calidad requerida para competir en el mercado de consumo. Solo tiene dos opciones: Si o No. Debe elegir una de las dos.",
+      "respuesta": "SI"
+    }
+  },
+  "valoracion_productiva": {
+    "satisface_cliente": {
+      "pregunta": "¿Con el desarrollo del proyecto se puede satisfacer la necesidad de un cliente potencial?",
+      "criterio": "Cuando el proyecto tiene efectos colaterales no incluidos en su formulación, generando la viabilidad de afectar a otros clientes y contextos. Solo tiene dos opciones: Si o No. Debe elegir una de las dos.",
+      "respuesta": "SI"
+    },
+    "viabilidad_negocio": {
+      "pregunta": "¿Viabilidad de proyecto para plan de negocio?",
+      "criterio": "Cuando un proyecto formativo tiene condiciones para transformarse en un proyecto productivo, es decir, que abre condiciones para creación de empresa. Solo tiene tres opciones: ALTA, MEDIA o BAJA. Debe elegir una de las tres.",
+      "respuesta": "ALTA"
+    }
   }
 };
 
@@ -133,6 +212,18 @@ export function getProyectoFormativo() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = jsonDeepMerge(PROYECTO_FORMATIVO_DEFAULT, JSON.parse(saved));
+      if (!parsed.restricciones_riesgos || !Array.isArray(parsed.restricciones_riesgos) || parsed.restricciones_riesgos.length === 0) {
+        parsed.restricciones_riesgos = JSON.parse(JSON.stringify(PROYECTO_FORMATIVO_DEFAULT.restricciones_riesgos));
+      }
+      if (!parsed.productos_resultados || !parsed.productos_resultados.fases) {
+        parsed.productos_resultados = JSON.parse(JSON.stringify(PROYECTO_FORMATIVO_DEFAULT.productos_resultados));
+      }
+      if (!parsed.innovacion_gestion) {
+        parsed.innovacion_gestion = JSON.parse(JSON.stringify(PROYECTO_FORMATIVO_DEFAULT.innovacion_gestion));
+      }
+      if (!parsed.valoracion_productiva) {
+        parsed.valoracion_productiva = JSON.parse(JSON.stringify(PROYECTO_FORMATIVO_DEFAULT.valoracion_productiva));
+      }
       return parsed;
     }
   } catch (e) {

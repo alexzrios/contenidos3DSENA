@@ -103,6 +103,12 @@ export class ProyectoFormativoView {
     const consecuencias = (pf.problema.consecuencias || []).join('\n');
     const objEspecificos = (pf.objetivos.especificos || []).join('\n');
 
+    const riesgos = pf.restricciones_riesgos || [];
+    const prodResultados = pf.productos_resultados || {};
+    const prodFases = prodResultados.fases || [];
+    const inno = pf.innovacion_gestion || {};
+    const val = pf.valoracion_productiva || {};
+
     return `
       <form id="formProyectoFormativo" onsubmit="event.preventDefault(); window.app.proyectoView.save();">
 
@@ -330,6 +336,221 @@ export class ProyectoFormativoView {
         </div>
 
 
+        <!-- 6. RESTRICCIONES O RIESGOS ASOCIADOS Y ALTERNATIVAS DE SOLUCIÓN (2.5.3) -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="badge amber">Sección 6 (2.5.3)</span>
+              <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">⚠️ Restricciones o Riesgos Asociados y Alternativas de Solución</span>
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Formato Institucional SENA GFPI-F-016</span>
+          </div>
+
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+            Identificación de restricciones tecnológicas, de infraestructura o de vinculación con el sector productivo, junto con sus estrategias formativas de mitigación.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+            ${riesgos.map((r, idx) => `
+              <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 8px; padding: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                  <span class="badge amber" style="font-size: 0.75rem;">Riesgo ${idx + 1}</span>
+                  <strong style="color: #fbbf24; font-size: 0.95rem;">Restricción o Riesgo #${idx + 1}</strong>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" style="font-size: 0.8rem; color: #fbbf24; font-weight: 700;">Nombre / Identificación del Riesgo:</label>
+                  <input type="text" id="pfRiesgoNombre_${idx}" class="form-input" value="${this.escapeHtml(r.nombre)}">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" style="font-size: 0.8rem; color: #f87171; font-weight: 700;">Descripción del Riesgo y su Impacto:</label>
+                  <textarea id="pfRiesgoDesc_${idx}" class="form-input" rows="3" style="font-size: 0.82rem; line-height: 1.45;">${this.escapeHtml(r.descripcion)}</textarea>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 0.8rem; color: #34d399; font-weight: 700;">Alternativa de Solución / Mitigación:</label>
+                  <textarea id="pfRiesgoSol_${idx}" class="form-input" rows="3" style="font-size: 0.82rem; line-height: 1.45;">${this.escapeHtml(r.alternativa_solucion)}</textarea>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+
+        <!-- 7. PRODUCTOS O RESULTADOS DEL PROYECTO (2.5.4) -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="badge purple">Sección 7 (2.5.4)</span>
+              <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">📦 Productos o Resultados del Proyecto</span>
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Resultados Tangibles y Verificables</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700; color: #a78bfa;">Descripción General de los Productos:</label>
+            <textarea id="pfProdDescGeneral" class="form-input" rows="3" style="font-size: 0.85rem; line-height: 1.45;">${this.escapeHtml(prodResultados.descripcion_general)}</textarea>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+            ${prodFases.map((f, idx) => `
+              <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 8px; padding: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                  <span class="badge purple" style="font-size: 0.75rem;">Fase ${idx + 1}</span>
+                  <input type="text" id="pfProdFaseNombre_${idx}" class="form-input" value="${this.escapeHtml(f.fase)}" style="font-weight: 700; color: #c084fc;">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" style="font-size: 0.8rem; color: #38bdf8; font-weight: 700;">Producto Entregable:</label>
+                  <textarea id="pfProdFaseProd_${idx}" class="form-input" rows="3" style="font-size: 0.82rem; line-height: 1.45;">${this.escapeHtml(f.producto)}</textarea>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label" style="font-size: 0.8rem; color: #10b981; font-weight: 700;">Criterio y Mecanismo de Evaluación:</label>
+                  <textarea id="pfProdFaseEval_${idx}" class="form-input" rows="3" style="font-size: 0.82rem; line-height: 1.45;">${this.escapeHtml(f.evaluacion)}</textarea>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+
+        <!-- 8. INNOVACIÓN / GESTIÓN TECNOLÓGICA (2.6) -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="badge cyan">Sección 8 (2.6)</span>
+              <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">🚀 Innovación / Gestión Tecnológica</span>
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">5 Indicadores de Vanguardia Técnica</span>
+          </div>
+
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+            Evaluación del impacto del proyecto frente al estado del arte, incorporación de tecnologías de punta, I+D y pertinencia sectorial.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+            <!-- Pregunta 1 -->
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 280px;">
+                <strong style="color: #f8fafc; font-size: 0.92rem; display: block; margin-bottom: 0.25rem;">¿El proyecto resuelve una necesidad del sector productivo?</strong>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">Respuesta soportada en la realidad, conocimiento del entorno y estado del arte del sector. Solo tiene dos opciones: Si o No.</span>
+              </div>
+              <div>
+                <select id="pfInnoResuelve" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #38bdf8;">
+                  <option value="SI" ${inno.resuelve_necesidad?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
+                  <option value="NO" ${inno.resuelve_necesidad?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Pregunta 2 -->
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 280px;">
+                <strong style="color: #f8fafc; font-size: 0.92rem; display: block; margin-bottom: 0.25rem;">¿El proyecto mejora el proceso/producto/servicio existente?</strong>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">Efecto o transformación que causa el producto del proyecto en sentido superación, innovación, productividad. Solo tiene dos opciones: Si o No.</span>
+              </div>
+              <div>
+                <select id="pfInnoMejora" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #38bdf8;">
+                  <option value="SI" ${inno.mejora_proceso?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
+                  <option value="NO" ${inno.mejora_proceso?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Pregunta 3 -->
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 280px;">
+                <strong style="color: #f8fafc; font-size: 0.92rem; display: block; margin-bottom: 0.25rem;">¿El proyecto involucra el uso de nuevas técnicas y tecnologías de proceso?</strong>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">La incorporación de tecnologías de punto y vanguardia, que dan cuenta del estado del arte del sector en el desarrollo del proyecto. Solo tiene dos opciones: Si o No.</span>
+              </div>
+              <div>
+                <select id="pfInnoNuevas" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #38bdf8;">
+                  <option value="SI" ${inno.nuevas_tecnicas?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
+                  <option value="NO" ${inno.nuevas_tecnicas?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Pregunta 4 -->
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 280px;">
+                <strong style="color: #f8fafc; font-size: 0.92rem; display: block; margin-bottom: 0.25rem;">¿Los productos finales son susceptibles a protección industrial y/o derechos de autor?</strong>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">El desarrollo del proyecto refleja una producción de I+D (Investigación y Desarrollo) de manera que se registre el producto como una creación propia, una invención o una construcción que modifica el discurso epistémico. Solo tiene dos opciones: Si o No.</span>
+              </div>
+              <div>
+                <select id="pfInnoProteccion" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #38bdf8;">
+                  <option value="SI" ${inno.proteccion_industrial?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
+                  <option value="NO" ${inno.proteccion_industrial?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Pregunta 5 -->
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 280px;">
+                <strong style="color: #f8fafc; font-size: 0.92rem; display: block; margin-bottom: 0.25rem;">¿Los productos obtenidos en el proyecto pueden ser posicionados en el mercado?</strong>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">El producto, la marca, objeto resultantes del proyecto poseen la calidad requerida para competir en el mercado de consumo. Solo tiene dos opciones: Si o No.</span>
+              </div>
+              <div>
+                <select id="pfInnoMercado" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #38bdf8;">
+                  <option value="SI" ${inno.posicionamiento_mercado?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
+                  <option value="NO" ${inno.posicionamiento_mercado?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- 9. VALORACIÓN PRODUCTIVA (2.7) -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span class="badge emerald">Sección 9 (2.7)</span>
+              <span style="font-size: 1.1rem; font-weight: 700; color: #fff;">💼 Valoración Productiva</span>
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Viabilidad Comercial y Emprendimiento</span>
+          </div>
+
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+            Evaluación de las condiciones del proyecto formativo para satisfacer necesidades de clientes potenciales y transformarse en una iniciativa productiva viable.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+            <!-- Pregunta 1 -->
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 280px;">
+                <strong style="color: #f8fafc; font-size: 0.92rem; display: block; margin-bottom: 0.25rem;">¿Con el desarrollo del proyecto se puede satisfacer la necesidad de un cliente potencial?</strong>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">Cuando el proyecto tiene efectos colaterales no incluidos en su formulación, generando la viabilidad de afectar a otros clientes y contextos. Solo tiene dos opciones: Si o No.</span>
+              </div>
+              <div>
+                <select id="pfValSatisface" class="form-select" style="width: 110px; font-weight: 700; text-align: center; border-color: #10b981;">
+                  <option value="SI" ${val.satisface_cliente?.respuesta === 'SI' ? 'selected' : ''}>SI</option>
+                  <option value="NO" ${val.satisface_cliente?.respuesta === 'NO' ? 'selected' : ''}>NO</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Pregunta 2 -->
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 280px;">
+                <strong style="color: #f8fafc; font-size: 0.92rem; display: block; margin-bottom: 0.25rem;">¿Viabilidad de proyecto para plan de negocio?</strong>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">Cuando un proyecto formativo tiene condiciones para transformarse en un proyecto productivo, es decir, que abre condiciones para creación de empresa. Solo tiene tres opciones: ALTA, MEDIA o BAJA.</span>
+              </div>
+              <div>
+                <select id="pfValViabilidad" class="form-select" style="width: 130px; font-weight: 700; text-align: center; border-color: #10b981; color: #34d399;">
+                  <option value="ALTA" ${val.viabilidad_negocio?.respuesta === 'ALTA' ? 'selected' : ''}>ALTA</option>
+                  <option value="MEDIA" ${val.viabilidad_negocio?.respuesta === 'MEDIA' ? 'selected' : ''}>MEDIA</option>
+                  <option value="BAJA" ${val.viabilidad_negocio?.respuesta === 'BAJA' ? 'selected' : ''}>BAJA</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
         <!-- BOTONES DE ACCIÓN INFERIORES -->
         <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem 1.5rem; flex-wrap: wrap; gap: 1rem;">
           <div style="display: flex; gap: 0.85rem; align-items: center; flex-wrap: wrap;">
@@ -425,6 +646,76 @@ export class ProyectoFormativoView {
     if (elImpEco) pf.alcance.impacto_economico = elImpEco.value.trim();
     if (elImpAmb) pf.alcance.impacto_ambiental = elImpAmb.value.trim();
     if (elImpTec) pf.alcance.impacto_tecnologico = elImpTec.value.trim();
+
+    // 6. Restricciones y Riesgos (2.5.3)
+    if (!pf.restricciones_riesgos) pf.restricciones_riesgos = [];
+    for (let i = 0; i < 3; i++) {
+      const elRNom = document.getElementById(`pfRiesgoNombre_${i}`);
+      const elRDesc = document.getElementById(`pfRiesgoDesc_${i}`);
+      const elRSol = document.getElementById(`pfRiesgoSol_${i}`);
+      if (!pf.restricciones_riesgos[i]) pf.restricciones_riesgos[i] = { id: i + 1 };
+      if (elRNom) pf.restricciones_riesgos[i].nombre = elRNom.value.trim();
+      if (elRDesc) pf.restricciones_riesgos[i].descripcion = elRDesc.value.trim();
+      if (elRSol) pf.restricciones_riesgos[i].alternativa_solucion = elRSol.value.trim();
+    }
+
+    // 7. Productos o Resultados (2.5.4)
+    if (!pf.productos_resultados) pf.productos_resultados = {};
+    const elPDescGen = document.getElementById('pfProdDescGeneral');
+    if (elPDescGen) pf.productos_resultados.descripcion_general = elPDescGen.value.trim();
+    if (!pf.productos_resultados.fases) pf.productos_resultados.fases = [];
+    for (let i = 0; i < 3; i++) {
+      const elFNom = document.getElementById(`pfProdFaseNombre_${i}`);
+      const elFProd = document.getElementById(`pfProdFaseProd_${i}`);
+      const elFEval = document.getElementById(`pfProdFaseEval_${i}`);
+      if (!pf.productos_resultados.fases[i]) pf.productos_resultados.fases[i] = {};
+      if (elFNom) pf.productos_resultados.fases[i].fase = elFNom.value.trim();
+      if (elFProd) pf.productos_resultados.fases[i].producto = elFProd.value.trim();
+      if (elFEval) pf.productos_resultados.fases[i].evaluacion = elFEval.value.trim();
+    }
+
+    // 8. Innovación / Gestión Tecnológica (2.6)
+    if (!pf.innovacion_gestion) pf.innovacion_gestion = {};
+    const elInnoRes = document.getElementById('pfInnoResuelve');
+    const elInnoMej = document.getElementById('pfInnoMejora');
+    const elInnoNue = document.getElementById('pfInnoNuevas');
+    const elInnoPro = document.getElementById('pfInnoProteccion');
+    const elInnoMer = document.getElementById('pfInnoMercado');
+
+    if (elInnoRes) {
+      if (!pf.innovacion_gestion.resuelve_necesidad) pf.innovacion_gestion.resuelve_necesidad = {};
+      pf.innovacion_gestion.resuelve_necesidad.respuesta = elInnoRes.value;
+    }
+    if (elInnoMej) {
+      if (!pf.innovacion_gestion.mejora_proceso) pf.innovacion_gestion.mejora_proceso = {};
+      pf.innovacion_gestion.mejora_proceso.respuesta = elInnoMej.value;
+    }
+    if (elInnoNue) {
+      if (!pf.innovacion_gestion.nuevas_tecnicas) pf.innovacion_gestion.nuevas_tecnicas = {};
+      pf.innovacion_gestion.nuevas_tecnicas.respuesta = elInnoNue.value;
+    }
+    if (elInnoPro) {
+      if (!pf.innovacion_gestion.proteccion_industrial) pf.innovacion_gestion.proteccion_industrial = {};
+      pf.innovacion_gestion.proteccion_industrial.respuesta = elInnoPro.value;
+    }
+    if (elInnoMer) {
+      if (!pf.innovacion_gestion.posicionamiento_mercado) pf.innovacion_gestion.posicionamiento_mercado = {};
+      pf.innovacion_gestion.posicionamiento_mercado.respuesta = elInnoMer.value;
+    }
+
+    // 9. Valoración Productiva (2.7)
+    if (!pf.valoracion_productiva) pf.valoracion_productiva = {};
+    const elValSat = document.getElementById('pfValSatisface');
+    const elValVia = document.getElementById('pfValViabilidad');
+
+    if (elValSat) {
+      if (!pf.valoracion_productiva.satisface_cliente) pf.valoracion_productiva.satisface_cliente = {};
+      pf.valoracion_productiva.satisface_cliente.respuesta = elValSat.value;
+    }
+    if (elValVia) {
+      if (!pf.valoracion_productiva.viabilidad_negocio) pf.valoracion_productiva.viabilidad_negocio = {};
+      pf.valoracion_productiva.viabilidad_negocio.respuesta = elValVia.value;
+    }
 
     saveProyectoFormativo(pf);
 
@@ -673,6 +964,153 @@ export class ProyectoFormativoView {
               <strong>Tecnológico:</strong> ${this.escapeHtml(pf.alcance.impacto_tecnologico)}
             </td>
           </tr>
+        </table>
+
+        <!-- 2.5.3 Restricciones o riesgos asociados y alternativas de solución -->
+        <div class="sena-sub-title" style="color: #0f172a; font-size: 10.5pt; font-weight: bold; margin-top: 1.25rem; margin-bottom: 0.4rem;">
+          2.5.3 Restricciones o riesgos asociados y alternativas de solución:
+        </div>
+        <table class="sena-table" style="width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 8.5pt;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="width: 5%; text-align: center; border: 1px solid #cbd5e1; padding: 6px;">#</th>
+              <th style="width: 45%; border: 1px solid #cbd5e1; padding: 6px 10px;">Restricción o Riesgo Asociado</th>
+              <th style="width: 50%; border: 1px solid #cbd5e1; padding: 6px 10px;">Alternativa de Solución Propuesta</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(pf.restricciones_riesgos || []).map((r, idx) => `
+              <tr>
+                <td style="text-align: center; font-weight: bold; border: 1px solid #cbd5e1; padding: 6px; vertical-align: top;">${idx + 1}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 6px 10px; vertical-align: top;">
+                  <strong style="color: #00324D;">${this.escapeHtml(r.nombre)}</strong>
+                  <p style="margin: 4px 0 0 0; text-align: justify; font-size: 8pt; color: #334155;">${this.escapeHtml(r.descripcion)}</p>
+                </td>
+                <td style="border: 1px solid #cbd5e1; padding: 6px 10px; vertical-align: top; text-align: justify; font-size: 8pt; color: #0f172a;">
+                  ${this.escapeHtml(r.alternativa_solucion)}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <!-- 2.5.4 Productos o resultados del proyecto -->
+        <div class="sena-sub-title" style="color: #0f172a; font-size: 10.5pt; font-weight: bold; margin-top: 1.25rem; margin-bottom: 0.4rem;">
+          2.5.4. Productos o resultados del proyecto:
+        </div>
+        <p style="text-align: justify; margin-bottom: 0.75rem; font-size: 8.5pt;">
+          ${this.escapeHtml(pf.productos_resultados?.descripcion_general || '')}
+        </p>
+        <table class="sena-table" style="width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 8.5pt;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="width: 25%; border: 1px solid #cbd5e1; padding: 6px 10px;">Fase del Proyecto</th>
+              <th style="width: 45%; border: 1px solid #cbd5e1; padding: 6px 10px;">Producto Entregable</th>
+              <th style="width: 30%; border: 1px solid #cbd5e1; padding: 6px 10px;">Criterio de Evaluación</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(pf.productos_resultados?.fases || []).map(f => `
+              <tr>
+                <td style="border: 1px solid #cbd5e1; padding: 6px 10px; vertical-align: top; font-weight: bold; color: #00324D;">${this.escapeHtml(f.fase)}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 6px 10px; vertical-align: top; text-align: justify; font-size: 8pt;">${this.escapeHtml(f.producto)}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 6px 10px; vertical-align: top; text-align: justify; font-size: 8pt; color: #334155;">${this.escapeHtml(f.evaluacion)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <!-- 2.6 Innovación/Gestión Tecnológica -->
+        <div class="sena-sub-title" style="color: #0f172a; font-size: 10.5pt; font-weight: bold; margin-top: 1.25rem; margin-bottom: 0.4rem;">
+          2.6 Innovación/Gestión Tecnológica
+        </div>
+        <table class="sena-table" style="width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 8.5pt;">
+          <thead>
+            <tr style="background: #e2e8f0;">
+              <th style="width: 82%; border: 1px solid #cbd5e1; padding: 6px 10px; text-align: left;">Criterio / Pregunta Orientadora</th>
+              <th style="width: 18%; border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center;">Respuesta</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px;">
+                <strong>¿El proyecto resuelve una necesidad del sector productivo?</strong><br>
+                <span style="font-size: 7.5pt; color: #475569;">Respuesta soportada en la realidad, conocimiento del entorno y estado del arte del sector. Solo tiene dos opciones: Si o No.</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center; font-weight: bold; color: #00324D;">
+                ${pf.innovacion_gestion?.resuelve_necesidad?.respuesta || 'SI'}
+              </td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px;">
+                <strong>¿El proyecto mejora el proceso/producto/servicio existente?</strong><br>
+                <span style="font-size: 7.5pt; color: #475569;">Efecto o transformación que causa el producto del proyecto en sentido superación, innovación, productividad. Solo tiene dos opciones: Si o No.</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center; font-weight: bold; color: #00324D;">
+                ${pf.innovacion_gestion?.mejora_proceso?.respuesta || 'SI'}
+              </td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px;">
+                <strong>¿El proyecto involucra el uso de nuevas técnicas y tecnologías de proceso?</strong><br>
+                <span style="font-size: 7.5pt; color: #475569;">La incorporación de tecnologías de punta y vanguardia, que dan cuenta del estado del arte del sector en el desarrollo del proyecto. Solo tiene dos opciones: Si o No.</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center; font-weight: bold; color: #00324D;">
+                ${pf.innovacion_gestion?.nuevas_tecnicas?.respuesta || 'SI'}
+              </td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px;">
+                <strong>¿Los productos finales son susceptibles a protección industrial y/o derechos de autor?</strong><br>
+                <span style="font-size: 7.5pt; color: #475569;">Refleja una producción de I+D de manera que se registre el producto como una creación propia, invención o construcción que modifica el discurso epistémico. Solo tiene dos opciones: Si o No.</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center; font-weight: bold; color: #00324D;">
+                ${pf.innovacion_gestion?.proteccion_industrial?.respuesta || 'SI'}
+              </td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px;">
+                <strong>¿Los productos obtenidos en el proyecto pueden ser posicionados en el mercado?</strong><br>
+                <span style="font-size: 7.5pt; color: #475569;">El producto, la marca, objeto resultantes poseen la calidad requerida para competir en el mercado de consumo. Solo tiene dos opciones: Si o No.</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center; font-weight: bold; color: #00324D;">
+                ${pf.innovacion_gestion?.posicionamiento_mercado?.respuesta || 'SI'}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- 2.7 Valoración Productiva -->
+        <div class="sena-sub-title" style="color: #0f172a; font-size: 10.5pt; font-weight: bold; margin-top: 1.25rem; margin-bottom: 0.4rem;">
+          2.7 Valoración Productiva
+        </div>
+        <table class="sena-table" style="width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 8.5pt;">
+          <thead>
+            <tr style="background: #e2e8f0;">
+              <th style="width: 82%; border: 1px solid #cbd5e1; padding: 6px 10px; text-align: left;">Criterio / Pregunta Orientadora</th>
+              <th style="width: 18%; border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center;">Respuesta</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px;">
+                <strong>¿Con el desarrollo del proyecto se puede satisfacer la necesidad de un cliente potencial?</strong><br>
+                <span style="font-size: 7.5pt; color: #475569;">Efectos colaterales no incluidos en su formulación, generando la viabilidad de afectar a otros clientes y contextos. Solo tiene dos opciones: Si o No.</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center; font-weight: bold; color: #00324D;">
+                ${pf.valoracion_productiva?.satisface_cliente?.respuesta || 'SI'}
+              </td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px;">
+                <strong>¿Viabilidad de proyecto para plan de negocio?</strong><br>
+                <span style="font-size: 7.5pt; color: #475569;">Condiciones para transformarse en un proyecto productivo, es decir, que abre condiciones para creación de empresa. Solo tiene tres opciones: ALTA, MEDIA o BAJA.</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center; font-weight: bold; color: #16a34a; font-size: 9.5pt;">
+                ${pf.valoracion_productiva?.viabilidad_negocio?.respuesta || 'ALTA'}
+              </td>
+            </tr>
+          </tbody>
         </table>
 
       </div>

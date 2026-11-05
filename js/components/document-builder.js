@@ -1641,6 +1641,145 @@ export class DocumentBuilder {
           </tr>
         </table>
 
+        <!-- 2.5.3 Restricciones o riesgos asociados y alternativas de solución -->
+        <div class="sena-sub-title">2.5.3 Restricciones o riesgos asociados y alternativas de solución:</div>
+        <table class="sena-table" style="font-size: 8.5pt;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="width: 5%; text-align: center; border: 1px solid #cbd5e1; padding: 6px;">#</th>
+              <th style="width: 45%; border: 1px solid #cbd5e1; padding: 6px 10px;">Restricción o Riesgo Asociado</th>
+              <th style="width: 50%; border: 1px solid #cbd5e1; padding: 6px 10px;">Alternativa de Solución Propuesta</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(pf.restricciones_riesgos || []).map((r, idx) => `
+              <tr>
+                <td style="text-align: center; font-weight: bold; border: 1px solid #cbd5e1; padding: 6px; vertical-align: top;">${idx + 1}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 6px 10px; vertical-align: top;">
+                  <strong style="color: #00324D;">${this.escapeHtml(r.nombre)}</strong>
+                  <p style="margin: 4px 0 0 0; text-align: justify; font-size: 8pt; color: #334155;">${this.escapeHtml(r.descripcion)}</p>
+                </td>
+                <td style="border: 1px solid #cbd5e1; padding: 6px 10px; vertical-align: top; text-align: justify; font-size: 8pt; color: #0f172a;">
+                  ${this.escapeHtml(r.alternativa_solucion)}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <!-- 2.5.4 Productos o resultados del proyecto -->
+        <div class="sena-sub-title">2.5.4. Productos o resultados del proyecto:</div>
+        <p style="text-align: justify; margin-bottom: 0.75rem; font-size: 8.5pt;">
+          ${this.escapeHtml(pf.productos_resultados?.descripcion_general || '')}
+        </p>
+        <table class="sena-table" style="font-size: 8.5pt;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="width: 25%; border: 1px solid #cbd5e1; padding: 6px 10px;">Fase del Proyecto</th>
+              <th style="width: 45%; border: 1px solid #cbd5e1; padding: 6px 10px;">Producto Entregable</th>
+              <th style="width: 30%; border: 1px solid #cbd5e1; padding: 6px 10px;">Criterio de Evaluación</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(pf.productos_resultados?.fases || []).map(f => `
+              <tr>
+                <td style="border: 1px solid #cbd5e1; padding: 6px 10px; vertical-align: top; font-weight: bold; color: #00324D;">${this.escapeHtml(f.fase)}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 6px 10px; vertical-align: top; text-align: justify; font-size: 8pt;">${this.escapeHtml(f.producto)}</td>
+                <td style="border: 1px solid #cbd5e1; padding: 6px 10px; vertical-align: top; text-align: justify; font-size: 8pt; color: #334155;">${this.escapeHtml(f.evaluacion)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <!-- 2.6 Innovación/Gestión Tecnológica -->
+        <div class="sena-sub-title">2.6 Innovación/Gestión Tecnológica</div>
+        <table class="sena-table" style="font-size: 8.5pt;">
+          <thead>
+            <tr style="background: #e2e8f0;">
+              <th style="width: 82%; border: 1px solid #cbd5e1; padding: 6px 10px; text-align: left;">Criterio / Pregunta Orientadora</th>
+              <th style="width: 18%; border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center;">Respuesta</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px;">
+                <strong>¿El proyecto resuelve una necesidad del sector productivo?</strong><br>
+                <span style="font-size: 7.5pt; color: #475569;">Respuesta soportada en la realidad, conocimiento del entorno y estado del arte del sector. Solo tiene dos opciones: Si o No.</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center; font-weight: bold; color: #00324D;">
+                ${pf.innovacion_gestion?.resuelve_necesidad?.respuesta || 'SI'}
+              </td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px;">
+                <strong>¿El proyecto mejora el proceso/producto/servicio existente?</strong><br>
+                <span style="font-size: 7.5pt; color: #475569;">Efecto o transformación que causa el producto del proyecto en sentido superación, innovación, productividad. Solo tiene dos opciones: Si o No.</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center; font-weight: bold; color: #00324D;">
+                ${pf.innovacion_gestion?.mejora_proceso?.respuesta || 'SI'}
+              </td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px;">
+                <strong>¿El proyecto involucra el uso de nuevas técnicas y tecnologías de proceso?</strong><br>
+                <span style="font-size: 7.5pt; color: #475569;">La incorporación de tecnologías de punta y vanguardia, que dan cuenta del estado del arte del sector en el desarrollo del proyecto. Solo tiene dos opciones: Si o No.</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center; font-weight: bold; color: #00324D;">
+                ${pf.innovacion_gestion?.nuevas_tecnicas?.respuesta || 'SI'}
+              </td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px;">
+                <strong>¿Los productos finales son susceptibles a protección industrial y/o derechos de autor?</strong><br>
+                <span style="font-size: 7.5pt; color: #475569;">Refleja una producción de I+D de manera que se registre el producto como una creación propia, invención o construcción que modifica el discurso epistémico. Solo tiene dos opciones: Si o No.</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center; font-weight: bold; color: #00324D;">
+                ${pf.innovacion_gestion?.proteccion_industrial?.respuesta || 'SI'}
+              </td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px;">
+                <strong>¿Los productos obtenidos en el proyecto pueden ser posicionados en el mercado?</strong><br>
+                <span style="font-size: 7.5pt; color: #475569;">El producto, la marca, objeto resultantes poseen la calidad requerida para competir en el mercado de consumo. Solo tiene dos opciones: Si o No.</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center; font-weight: bold; color: #00324D;">
+                ${pf.innovacion_gestion?.posicionamiento_mercado?.respuesta || 'SI'}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- 2.7 Valoración Productiva -->
+        <div class="sena-sub-title">2.7 Valoración Productiva</div>
+        <table class="sena-table" style="font-size: 8.5pt;">
+          <thead>
+            <tr style="background: #e2e8f0;">
+              <th style="width: 82%; border: 1px solid #cbd5e1; padding: 6px 10px; text-align: left;">Criterio / Pregunta Orientadora</th>
+              <th style="width: 18%; border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center;">Respuesta</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px;">
+                <strong>¿Con el desarrollo del proyecto se puede satisfacer la necesidad de un cliente potencial?</strong><br>
+                <span style="font-size: 7.5pt; color: #475569;">Efectos colaterales no incluidos en su formulación, generando la viabilidad de afectar a otros clientes y contextos. Solo tiene dos opciones: Si o No.</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center; font-weight: bold; color: #00324D;">
+                ${pf.valoracion_productiva?.satisface_cliente?.respuesta || 'SI'}
+              </td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px;">
+                <strong>¿Viabilidad de proyecto para plan de negocio?</strong><br>
+                <span style="font-size: 7.5pt; color: #475569;">Condiciones para transformarse en un proyecto productivo, es decir, que abre condiciones para creación de empresa. Solo tiene tres opciones: ALTA, MEDIA o BAJA.</span>
+              </td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center; font-weight: bold; color: #16a34a; font-size: 9.5pt;">
+                ${pf.valoracion_productiva?.viabilidad_negocio?.respuesta || 'ALTA'}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
         <!-- 3. PLANEACIÓN DEL PROYECTO -->
         <div class="sena-section-title">3. PLANEACIÓN DEL PROYECTO (39 GUÍAS CONSECUTIVAS — PIPELINE TECNOLÓGICO)</div>
         <p style="font-size: 8.5pt; color: #475569; margin-bottom: 0.75rem;">
