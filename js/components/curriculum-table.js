@@ -398,7 +398,7 @@ export class CurriculumTable {
                               ${horas} h
                             </td>
                             <td style="padding: 0.75rem 0.5rem; vertical-align: top; text-align: center;">
-                              <button class="btn-action" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="window.app.openEditRapModal('${r.rap_id}')">
+                              <button class="btn-action" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="window.app.showRapModal('${r.rap_id}')">
                                 Ver Detalle
                               </button>
                             </td>

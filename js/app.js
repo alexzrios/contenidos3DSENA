@@ -434,6 +434,10 @@ class App {
     });
   }
 
+  openEditRapModal(rapKey) {
+    this.showRapModal(rapKey);
+  }
+
   showRapModal(rapKey) {
     const isTecnico = !!RAPS_TECNICOS[rapKey];
     const rap = isTecnico ? RAPS_TECNICOS[rapKey] : RAPS_TRANSVERSALES[rapKey];
