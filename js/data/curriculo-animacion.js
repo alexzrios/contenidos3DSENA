@@ -13,6 +13,8 @@ export const CURRICULO_ANIMACION = {
     {
       "numero": "I",
       "fase": "Preproducción y Previsualización",
+      "fase_proyecto": "FASE 1 (PLANEAR)",
+      "fase_ciclo": "PLANEAR",
       "horas_totales": 384,
       "creditos": 8,
       "raps": [
@@ -63,6 +65,8 @@ export const CURRICULO_ANIMACION = {
     {
       "numero": "II",
       "fase": "Rigging, MoCap y Prompts Técnicos",
+      "fase_proyecto": "FASE 2 (HACER)",
+      "fase_ciclo": "HACER",
       "horas_totales": 384,
       "creditos": 8,
       "raps": [
@@ -106,6 +110,8 @@ export const CURRICULO_ANIMACION = {
     {
       "numero": "III",
       "fase": "Composición, VFX y Postproducción Final",
+      "fase_proyecto": "FASE 3 (VERIFICAR)",
+      "fase_ciclo": "VERIFICAR",
       "horas_totales": 384,
       "creditos": 8,
       "raps": [

@@ -13,6 +13,8 @@ export const CURRICULO_MODELADO = {
     {
       "numero": "I",
       "fase": "Modelado y Escultura Base",
+      "fase_proyecto": "FASE 1 (PLANEAR)",
+      "fase_ciclo": "PLANEAR",
       "horas_totales": 384,
       "creditos": 8,
       "raps": [
@@ -56,6 +58,8 @@ export const CURRICULO_MODELADO = {
     {
       "numero": "II",
       "fase": "Superficies PBR y CAD Paramétrico",
+      "fase_proyecto": "FASE 2 (HACER)",
+      "fase_ciclo": "HACER",
       "horas_totales": 432,
       "creditos": 9,
       "raps": [
@@ -99,6 +103,8 @@ export const CURRICULO_MODELADO = {
     {
       "numero": "III",
       "fase": "Manufactura 3D y Coordinación BIM",
+      "fase_proyecto": "FASE 3 (HACER)",
+      "fase_ciclo": "HACER",
       "horas_totales": 288,
       "creditos": 6,
       "raps": [

@@ -81,8 +81,11 @@ export class CurriculumTable {
   }
 
   renderCompetenciasSection(curriculo) {
-    const tecnicas = COMPETENCIAS_MATRIZ.filter(c => c.tipo === 'tecnico');
-    const transversales = COMPETENCIAS_MATRIZ.filter(c => c.tipo === 'transversal');
+    // Calcular estadísticas dinámicas del programa activo
+    let horasTecnicas = 0;
+    let horasTransversales = 0;
+    const compsTecnicasUsadas = new Set();
+    const compsTransversalesUsadas = new Set();
 
     // Mapeo dinámico de fases y RAPs para cada competencia
     const getCompDetails = (comp) => {
@@ -104,7 +107,8 @@ export class CurriculumTable {
           );
 
           if (matchTec || matchTrans) {
-            fases.add(t.fase_ciclo || t.fase_proyecto);
+            const fName = t.fase_ciclo || t.fase_proyecto || (t.fase ? `FASE ${t.numero}` : 'Malla');
+            if (fName) fases.add(fName);
             trimestres.add('T' + t.numero);
             raps.push({
               id: r.rap_id,
@@ -123,6 +127,32 @@ export class CurriculumTable {
       };
     };
 
+    curriculo.trimestres.forEach(t => {
+      t.raps.forEach(r => {
+        const isTec = r.tipo === 'tecnico';
+        const data = isTec ? RAPS_TECNICOS[r.rap_id] : RAPS_TRANSVERSALES[r.rap_id];
+        const h = r.horas || (data ? data.horas : 48);
+        if (isTec) {
+          horasTecnicas += h;
+          if (data && data.norma_codigo) compsTecnicasUsadas.add(data.norma_codigo);
+        } else {
+          horasTransversales += h;
+          if (data && data.norma_codigo) compsTransversalesUsadas.add(data.norma_codigo);
+        }
+      });
+    });
+
+    const creditosTecnicos = Math.round(horasTecnicas / 48);
+    const creditosTransversales = Math.round(horasTransversales / 48);
+    const totalProgHoras = curriculo.info.total_horas || (horasTecnicas + horasTransversales);
+    const totalProgCreditos = curriculo.info.creditos_totales || (creditosTecnicos + creditosTransversales);
+    const horasPractica = Math.max(0, totalProgHoras - (horasTecnicas + horasTransversales));
+    const creditosPractica = Math.max(0, totalProgCreditos - (creditosTecnicos + creditosTransversales));
+
+    // Competencias pertenecientes a este programa formativo
+    const activeCompetencias = COMPETENCIAS_MATRIZ.filter(c => getCompDetails(c).raps.length > 0);
+    const totalCompsCount = activeCompetencias.length;
+
     return `
       <!-- SECCIÓN 1: MATRIZ DE COMPETENCIAS LABORALES (ORDENADAS EN TÉCNICAS Y TRANSVERSALES) -->
       <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2.25rem; backdrop-filter: blur(10px);">
@@ -134,31 +164,30 @@ export class CurriculumTable {
               <span class="badge cyan" style="font-size: 0.82rem; padding: 3px 9px;">Normas de Competencia Laboral</span>
               <h2 style="font-size: 1.4rem; font-weight: 800; margin: 0; color: #fff;">🏛️ Matriz de Competencias del Programa</h2>
               <span id="competenciasCollapsedBadge" style="display: ${this.isCompetenciasExpanded ? 'none' : 'inline-flex'}; font-size: 0.75rem; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); padding: 3px 9px; border-radius: 4px; font-weight: 700;">
-                15 Competencias (6 Técnicas · 9 Transversales) · 3.120 h
+                ${totalCompsCount} Competencias (${compsTecnicasUsadas.size} Técnicas · ${compsTransversalesUsadas.size} Transversales) · ${totalProgHoras.toLocaleString()} h
               </span>
             </div>
             <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0.35rem 0 0 0;">
-              Clasificación oficial en <strong>Competencias Específicas (Técnicas 3D)</strong> y <strong>Competencias Básicas (Transversales y Claves)</strong>, con sus RAPs y Fases asociadas.
+              ${this.escapeHtml(curriculo.info.denominacion)} — Clasificación oficial en Competencias Específicas (Técnicas 3D) y Competencias Básicas (Transversales y Claves).
             </p>
           </div>
 
-          <!-- Controles de la derecha: Filtros y Botón Acordeón -->
-          <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
-            <!-- Filtros de Competencias -->
-            <div id="competenciasHeaderFilters" style="display: ${this.isCompetenciasExpanded ? 'flex' : 'none'}; gap: 0.35rem; background: rgba(15, 23, 42, 0.6); padding: 0.3rem; border-radius: 8px; border: 1px solid var(--border-color); flex-wrap: wrap;">
-              <button type="button" class="btn-action comp-filter-btn primary" data-filter="all" onclick="window.app.curriculumTable.filterCompetencias('all')" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 700; background: linear-gradient(135deg, #0284c7, #2563eb); border-color: #38bdf8; color: #fff;">
-                Todas (15)
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <!-- Filtros de la Matriz -->
+            <div id="competenciasHeaderFilters" style="display: ${this.isCompetenciasExpanded ? 'flex' : 'none'}; gap: 0.4rem; flex-wrap: wrap; align-items: center;">
+              <button type="button" class="btn-action active comp-filter-btn" data-filter="all" onclick="window.app.curriculumTable.filterCompetencias('all')" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 700;">
+                Todas (${totalCompsCount})
               </button>
               <button type="button" class="btn-action comp-filter-btn" data-filter="tecnico" onclick="window.app.curriculumTable.filterCompetencias('tecnico')" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 700; color: #38bdf8; background: rgba(15, 23, 42, 0.6); border-color: rgba(148, 163, 184, 0.2);">
-                🛠️ Técnicas (6)
+                🛠️ Técnicas (${compsTecnicasUsadas.size})
               </button>
               <button type="button" class="btn-action comp-filter-btn" data-filter="transversal" onclick="window.app.curriculumTable.filterCompetencias('transversal')" style="padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 700; color: #c084fc; background: rgba(15, 23, 42, 0.6); border-color: rgba(148, 163, 184, 0.2);">
-                🌱 Transversales (9)
+                🌱 Transversales (${compsTransversalesUsadas.size})
               </button>
             </div>
 
             <!-- Botón Acordeón Expandir / Colapsar -->
-            <button type="button" id="btnToggleCompetencias" class="btn-action" onclick="window.app.curriculumTable.toggleCompetenciasAccordion()" title="Expandir o Colapsar Matriz de Competencias" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; font-size: 1rem; cursor: pointer; transition: all 0.25s ease;">
+            <button type="button" id="btnToggleCompetencias" class="btn-action" onclick="window.app.curriculumTable.toggleCompetenciasAccordion()" title="${this.isCompetenciasExpanded ? 'Contraer sección (subir)' : 'Desplegar sección (bajar)'}" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; font-size: 1rem; cursor: pointer; transition: all 0.25s ease;">
               <span id="competenciasChevron" style="display: inline-block; font-size: 0.95rem; font-weight: bold; line-height: 1;">${this.isCompetenciasExpanded ? '▲' : '▼'}</span>
             </button>
           </div>
@@ -170,32 +199,32 @@ export class CurriculumTable {
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
           <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 0.85rem 1rem;">
             <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Componente Específico (Técnicas 3D)</span>
-            <div style="font-size: 1.35rem; font-weight: 800; color: #38bdf8; margin: 3px 0;">1.776 h <span style="font-size: 0.82rem; font-weight: normal; color: #cbd5e1;">(37 Créditos)</span></div>
-            <span style="font-size: 0.75rem; color: #38bdf8;">6 Competencias Específicas</span>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #38bdf8; margin: 3px 0;">${horasTecnicas} h <span style="font-size: 0.82rem; font-weight: normal; color: #cbd5e1;">(${creditosTecnicos} Créditos)</span></div>
+            <span style="font-size: 0.75rem; color: #38bdf8;">${compsTecnicasUsadas.size} Competencias Específicas</span>
           </div>
 
           <div style="background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 8px; padding: 0.85rem 1rem;">
             <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Componente Básico (Transversales y Claves)</span>
-            <div style="font-size: 1.35rem; font-weight: 800; color: #c084fc; margin: 3px 0;">672 h <span style="font-size: 0.82rem; font-weight: normal; color: #cbd5e1;">(14 Créditos)</span></div>
-            <span style="font-size: 0.75rem; color: #c084fc;">9 Competencias Institucionales</span>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #c084fc; margin: 3px 0;">${horasTransversales} h <span style="font-size: 0.82rem; font-weight: normal; color: #cbd5e1;">(${creditosTransversales} Créditos)</span></div>
+            <span style="font-size: 0.75rem; color: #c084fc;">${compsTransversalesUsadas.size} Competencias Institucionales</span>
           </div>
 
           <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 0.85rem 1rem;">
             <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Etapa Práctica (Empresarial)</span>
-            <div style="font-size: 1.35rem; font-weight: 800; color: #34d399; margin: 3px 0;">672 h <span style="font-size: 0.82rem; font-weight: normal; color: #cbd5e1;">(14 Créditos)</span></div>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #34d399; margin: 3px 0;">${horasPractica} h <span style="font-size: 0.82rem; font-weight: normal; color: #cbd5e1;">(${creditosPractica} Créditos)</span></div>
             <span style="font-size: 0.75rem; color: #34d399;">Aplicación en el Sector Productivo</span>
           </div>
 
           <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 0.85rem 1rem;">
-            <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Total Tecnólogo en Producción 3D</span>
-            <div style="font-size: 1.35rem; font-weight: 800; color: #f8fafc; margin: 3px 0;">3.120 h <span style="font-size: 0.82rem; font-weight: normal; color: #cbd5e1;">(65 Créditos)</span></div>
-            <span style="font-size: 0.75rem; color: #94a3b8;">Código SENA 522301</span>
+            <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Total ${this.escapeHtml(curriculo.info.denominacion)}</span>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #f8fafc; margin: 3px 0;">${totalProgHoras.toLocaleString()} h <span style="font-size: 0.82rem; font-weight: normal; color: #cbd5e1;">(${totalProgCreditos} Créditos)</span></div>
+            <span style="font-size: 0.75rem; color: #94a3b8;">Código SENA ${curriculo.info.codigo}</span>
           </div>
         </div>
 
-        <!-- Grid de las 15 Competencias -->
+        <!-- Grid de las Competencias del Programa Activo -->
         <div id="competenciasCardsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 0.85rem;">
-          ${COMPETENCIAS_MATRIZ.map(comp => {
+          ${activeCompetencias.map(comp => {
             const isTec = comp.tipo === 'tecnico';
             const details = getCompDetails(comp);
             const badgeColor = isTec ? '#38bdf8' : '#c084fc';
@@ -236,9 +265,10 @@ export class CurriculumTable {
                   <!-- Fases donde se ejecuta -->
                   <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.75rem;">
                     <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">Fases:</span>
-                    ${details.fases.length > 0 ? details.fases.map(f => {
-                      const fColor = f.includes('PLANEAR') ? '#34d399' : (f.includes('HACER') ? '#38bdf8' : (f.includes('VERIFICAR') ? '#fbbf24' : '#c084fc'));
-                      return `<span style="font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: ${fColor};">${this.escapeHtml(f)}</span>`;
+                    ${details.fases.length > 0 ? details.fases.filter(Boolean).map(f => {
+                      const fStr = String(f);
+                      const fColor = fStr.includes('PLANEAR') ? '#34d399' : (fStr.includes('HACER') ? '#38bdf8' : (fStr.includes('VERIFICAR') ? '#fbbf24' : '#c084fc'));
+                      return `<span style="font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: ${fColor};">${this.escapeHtml(fStr)}</span>`;
                     }).join('') : '<span style="font-size: 0.7rem; color: #64748b;">Malla General</span>'}
                   </div>
                 </div>
@@ -286,7 +316,7 @@ export class CurriculumTable {
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
           <div>
             <h2 style="font-size: 1.45rem; font-weight: 800; letter-spacing: -0.02em; color: #fff;">🗓️ Malla Curricular por Trimestres y Resultados de Aprendizaje</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Distribución secuencial de 7 trimestres lectivos, horas directas y evidencias evaluativas.</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">${this.escapeHtml(curriculo.info.denominacion)} — Distribución secuencial de ${curriculo.trimestres.length} trimestres lectivos, horas directas y evidencias evaluativas.</p>
           </div>
           <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
             <button class="btn-action primary" onclick="window.app.openCreateRapModal('I')" style="font-size: 0.85rem; padding: 0.45rem 0.9rem; font-weight: 700; background: linear-gradient(135deg, #0284c7, #2563eb);">
@@ -309,24 +339,18 @@ export class CurriculumTable {
 
             if (visibleRaps.length === 0) return '';
 
-            const phvaMap = {
-              'I': { fase: 'FASE 1 (PLANEAR)', color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.18)', border: 'rgba(56, 189, 248, 0.45)' },
-              'II': { fase: 'FASE 2 (HACER)', color: '#10b981', bg: 'rgba(16, 185, 129, 0.18)', border: 'rgba(16, 185, 129, 0.45)' },
-              'III': { fase: 'FASE 3 (HACER)', color: '#10b981', bg: 'rgba(16, 185, 129, 0.18)', border: 'rgba(16, 185, 129, 0.45)' },
-              'IV': { fase: 'FASE 4 (HACER)', color: '#10b981', bg: 'rgba(16, 185, 129, 0.18)', border: 'rgba(16, 185, 129, 0.45)' },
-              'V': { fase: 'FASE 5 (VERIFICAR)', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.18)', border: 'rgba(245, 158, 11, 0.45)' },
-              'VI': { fase: 'FASE 6 (VERIFICAR)', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.18)', border: 'rgba(245, 158, 11, 0.45)' },
-              'VII': { fase: 'FASE 7 (ACTUAR)', color: '#a855f7', bg: 'rgba(168, 85, 247, 0.18)', border: 'rgba(168, 85, 247, 0.45)' }
-            };
-            const pInfo = phvaMap[trim.numero] || (trim.fase_proyecto ? { fase: trim.fase_proyecto, color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.18)', border: 'rgba(56, 189, 248, 0.45)' } : { fase: `FASE ${trim.numero}`, color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.15)', border: 'rgba(148, 163, 184, 0.35)' });
+            const fStr = trim.fase_proyecto || (trim.numero === 'I' ? 'FASE 1 (PLANEAR)' : 'FASE ' + trim.numero);
+            const fColor = fStr.includes('PLANEAR') ? '#38bdf8' : (fStr.includes('HACER') ? '#10b981' : (fStr.includes('VERIFICAR') ? '#f59e0b' : '#a855f7'));
+            const fBg = fStr.includes('PLANEAR') ? 'rgba(56, 189, 248, 0.18)' : (fStr.includes('HACER') ? 'rgba(16, 185, 129, 0.18)' : (fStr.includes('VERIFICAR') ? 'rgba(245, 158, 11, 0.18)' : 'rgba(168, 85, 247, 0.18)'));
+            const fBorder = fStr.includes('PLANEAR') ? 'rgba(56, 189, 248, 0.45)' : (fStr.includes('HACER') ? 'rgba(16, 185, 129, 0.45)' : (fStr.includes('VERIFICAR') ? 'rgba(245, 158, 11, 0.45)' : 'rgba(168, 85, 247, 0.45)'));
 
             return `
               <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; backdrop-filter: blur(10px);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.85rem; flex-wrap: wrap; gap: 0.75rem;">
                   <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
                     <span style="background: var(--accent-blue); color: white; font-weight: 800; font-size: 0.85rem; padding: 0.3rem 0.75rem; border-radius: 8px;">TRIMESTRE ${trim.numero}</span>
-                    <span style="background: ${pInfo.bg}; color: ${pInfo.color}; border: 1px solid ${pInfo.border}; font-weight: 800; font-size: 0.78rem; padding: 0.28rem 0.65rem; border-radius: 6px; letter-spacing: 0.02em; display: inline-flex; align-items: center; gap: 0.3rem;">
-                      <span>📌</span> ${pInfo.fase}
+                    <span style="background: ${fBg}; color: ${fColor}; border: 1px solid ${fBorder}; font-weight: 800; font-size: 0.78rem; padding: 0.28rem 0.65rem; border-radius: 6px; letter-spacing: 0.02em; display: inline-flex; align-items: center; gap: 0.3rem;">
+                      <span>📌</span> ${fStr}
                     </span>
                     <h3 style="font-size: 1.25rem; font-weight: 700; margin: 0;">${trim.fase}</h3>
                   </div>
